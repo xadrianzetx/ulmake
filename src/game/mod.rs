@@ -9,7 +9,8 @@ const GAME_PREFIX: &str = "ul.";
 pub struct Game {
     crc_name: String,
     pub opl_name: String,
-    pub serial: String
+    pub serial: String,
+    pub num_chunks: Option<i32>
 }
 
 impl Game {
@@ -23,25 +24,27 @@ impl Game {
         let game = Game {
             opl_name: opl_name,
             crc_name: crc_name,
-            serial: serial
+            serial: serial,
+            num_chunks: None
         };
 
         Ok(game)
     }
 
-    pub fn from_config(opl_name: String, serial: String) -> Result<Game> {
+    pub fn from_config(opl_name: String, serial: String, num_chunks: i32) -> Result<Game> {
         let crc_name = crc::get_game_name_crc(&opl_name);
         let game = Game {
             opl_name: opl_name,
             crc_name: crc_name,
-            serial: serial
+            serial: serial,
+            num_chunks: Some(num_chunks)
         };
 
         Ok(game)
     }
 
-    pub fn split(&self, isopath: &Path, dst: &Path) -> Result<i32> {
-        // will return num of chunks game was split into
+    pub fn split(&mut self, isopath: &Path, dstpath: &Path) -> Result<()> {
+        // TODO self.num_chunks = Some(num_chunks);
         unimplemented!();
     }
 
