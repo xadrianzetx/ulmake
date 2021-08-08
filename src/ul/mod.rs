@@ -82,9 +82,9 @@ impl Ulcfg {
 
     pub fn list_games(&self) {
         // TODO make pretty print
-        println!("Name|Serial");
-        for game in &self.game_list {
-            println!("{}|{}", game.opl_name, game.serial);
+        println!("Index|Name|Serial");
+        for (pos, game) in self.game_list.iter().enumerate() {
+            println!("{}|{}|{}", pos, game.opl_name, game.serial);
         }
     }
 
