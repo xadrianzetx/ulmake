@@ -3,7 +3,7 @@ mod parser;
 use crate::game::Game;
 
 use std::path::Path;
-use std::fs::read;
+use std::fs::{read, write};
 use std::io::Result;
 
 const UL_GAME_SIZE: usize = 64;
@@ -11,6 +11,10 @@ const UL_GAME_NAME_START: usize = 0;
 const UL_GAME_NAME_END: usize = 32;
 const UL_SERIAL_START: usize = 35;
 const UL_SERIAL_END: usize = 47;
+const UL_EMPTY_SIZE: usize = 4;
+const UL_NAME_EXT_SIZE: usize = 10;
+const SCEC_DVD_MEDIA_TYPE: u8 = 0x14;
+const USBEXTREME_MAGIC: u8 = 0x08;
 
 pub struct Ulcfg {
     game_list: Vec<Game>
@@ -36,8 +40,8 @@ impl Ulcfg {
             let serial = parser::parse_to_string(gbuff, UL_SERIAL_START, UL_SERIAL_END);
             let num_chunks = gbuff[UL_SERIAL_END] as i32;
             
-            let game = Game::from_config(opl_name, serial, num_chunks).unwrap();
-            game_list.push(game);
+            let entry = Game::from_config(opl_name, serial, num_chunks).unwrap();
+            game_list.push(entry);
 
             start_index += UL_GAME_SIZE;
         }
@@ -47,7 +51,33 @@ impl Ulcfg {
     }
 
     pub fn save(&self, path: &Path) -> Result<()> {
-        unimplemented!();
+        let mut ulbuff: Vec<u8> = Vec::new();
+
+        for entry in &self.game_list {
+            // first 32 bytes are padded OPL game name
+            let game_name_size = UL_GAME_NAME_END - UL_GAME_NAME_START;
+            let game_name_bytes = parser::compose_from_str(&entry.opl_name, game_name_size);
+            ulbuff.extend_from_slice(&game_name_bytes);
+
+            // next 15 bytes are serial with `ul.` prefix and padding
+            ulbuff.extend_from_slice(&vec![0x75, 0x6c, 0x2e]);
+            let serial_size = UL_SERIAL_END - UL_SERIAL_START;
+            let serial_bytes = parser::compose_from_str(&entry.serial, serial_size);
+            ulbuff.extend_from_slice(&serial_bytes);
+
+            // next byte is number of game chunks
+            let num_chunks = entry.num_chunks.unwrap() as u8;
+            ulbuff.push(num_chunks);
+
+            // last 16 bytes are just constants
+            ulbuff.push(SCEC_DVD_MEDIA_TYPE);
+            ulbuff.extend_from_slice(&vec![0x00; UL_EMPTY_SIZE]);
+            ulbuff.push(USBEXTREME_MAGIC);
+            ulbuff.extend_from_slice(&vec![0x00; UL_NAME_EXT_SIZE]);
+        }
+
+        write(path, &ulbuff)?;
+        Ok(())
     }
 
     pub fn list_games(&self) {
