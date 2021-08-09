@@ -2,9 +2,11 @@ mod crc;
 mod serial;
 
 use std::path::Path;
+use std::io::prelude::*;
 use std::io::Result;
+use std::fs::{File, metadata};
 
-const GAME_PREFIX: &str = "ul.";
+const CHUNK_SIZE: u64 = 1_073_741_824;
 
 pub struct Game {
     crc_name: String,
@@ -41,8 +43,32 @@ impl Game {
     }
 
     pub fn split(&mut self, isopath: &Path, dstpath: &Path) -> Result<()> {
-        // TODO self.num_chunks = Some(num_chunks);
-        unimplemented!();
+        let meta = metadata(isopath)?;
+        let mut file = File::open(isopath)?;
+
+        let n_chunksf = meta.len() as f64 / CHUNK_SIZE as f64;
+        let n_chunks = n_chunksf.ceil() as i32;
+        let mut offset: u64 = 0;
+
+        for chunk in 0..n_chunks {
+            print!("Creating chunk {} of {}...", chunk + 1, n_chunks);
+
+            // even largest ps2 game should not be over 9 chunks
+            let chunkname = format!("ul.{}.{}.0{}", &self.crc_name, &self.serial, chunk);
+            let chunkpath = dstpath.join(Path::new(&chunkname));
+            let mut dst = File::create(chunkpath)?;
+
+            file.seek(std::io::SeekFrom::Start(offset))?;
+            let mut src = file.take(CHUNK_SIZE);
+            std::io::copy(&mut src, &mut dst)?;
+            file = src.into_inner();
+
+            offset += CHUNK_SIZE;
+            println!("Done.");
+        }
+
+        self.num_chunks = Some(n_chunks);
+        Ok(())
     }
 
     pub fn remove(&self, gamepath: &Path) -> Result<()> {
