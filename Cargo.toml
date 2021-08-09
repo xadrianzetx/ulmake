@@ -10,3 +10,4 @@ escription = ""
 [dependencies]
 iso9660 = {version = "0.1.0", git = "https://github.com/ids1024/iso9660-rs"}
 regex = "1.5"
+fs2 = "0.4.3"
