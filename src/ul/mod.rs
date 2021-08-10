@@ -4,7 +4,7 @@ use crate::game::Game;
 
 use std::path::Path;
 use std::fs::{read, write};
-use std::io::Result;
+use std::io::{Result, Error, ErrorKind};
 
 const UL_GAME_SIZE: usize = 64;
 const UL_GAME_NAME_START: usize = 0;
@@ -96,9 +96,29 @@ impl Ulcfg {
         Ok(())
     }
 
-    pub fn remove_game(&mut self) -> Result<()> {
-        // TODO must be able to remove by name
-        // or by index
-        unimplemented!();
+    pub fn delete_game_by_name(&mut self, name: &String, path: &Path) -> Result<()> {
+        for (index, game) in self.game_list.iter().enumerate() {
+            if &game.opl_name == name {
+                self.delete_game(index, path)?;
+                return Ok(())
+            }
+        }
+
+        Err(Error::from(ErrorKind::InvalidInput))
+    }
+
+    pub fn delete_game_by_index(&mut self, index: usize, path: &Path) -> Result<()> {
+        if index >= self.game_list.len() {
+            return Err(Error::from(ErrorKind::InvalidInput))
+        }
+
+        self.delete_game(index, path)?;
+        Ok(())
+    }
+
+    fn delete_game(&mut self, index: usize, path: &Path) -> Result<()> {
+        self.game_list[index].delete_chunks(path)?;
+        self.game_list.remove(index);
+        Ok(())
     }
 }
