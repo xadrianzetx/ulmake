@@ -5,8 +5,12 @@ use std::fs::metadata;
 use std::path::Path;
 use std::io::{Result, Error, ErrorKind};
 
-pub fn list_games() {
-    unimplemented!();
+pub fn list_games(path: &Path) -> Result<()> {
+    let ulpath = path.join(Path::new("ul.cfg"));
+    let ulcfg = Ulcfg::load(&ulpath)?;
+    ulcfg.list_games();
+
+    Ok(())
 }
 
 pub fn add_game(isopath: &Path, dstpath: &Path, name: String) -> Result<()> {
