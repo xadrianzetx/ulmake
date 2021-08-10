@@ -4,7 +4,7 @@ mod serial;
 use std::path::Path;
 use std::io::prelude::*;
 use std::io::Result;
-use std::fs::{File, metadata};
+use std::fs::{File, metadata, remove_file};
 
 const CHUNK_SIZE: u64 = 1_073_741_824;
 
@@ -71,7 +71,17 @@ impl Game {
         Ok(())
     }
 
-    pub fn remove(&self, gamepath: &Path) -> Result<()> {
-        unimplemented!();
+    pub fn delete_chunks(&self, ulpath: &Path) -> Result<()> {
+        println!("Deleting {}", &self.opl_name);
+
+        for chunk in 0..self.num_chunks.unwrap() {
+            print!("Deleting chunk {} of {}...", chunk + 1, self.num_chunks.unwrap());
+            let chunkname = format!("ul.{}.{}.0{}", &self.crc_name, &self.serial, chunk);
+            let chunkpath = ulpath.join(Path::new(&chunkname));
+            remove_file(chunkpath)?;
+            println!("Done");
+        }
+
+        Ok(())
     }
 }
