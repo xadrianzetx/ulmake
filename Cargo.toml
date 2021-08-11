@@ -4,10 +4,11 @@ version = "0.1.0"
 edition = "2018"
 authors = ["xadrianzetx"]
 license = "MIT"
-repository = ""
-escription = ""
+repository = "https://github.com/xadrianzetx/ulmake"
+description = ""
 
 [dependencies]
+clap = "2.33.3"
+fs2 = "0.4.3"
 iso9660 = {version = "0.1.0", git = "https://github.com/ids1024/iso9660-rs"}
 regex = "1.5"
-fs2 = "0.4.3"
