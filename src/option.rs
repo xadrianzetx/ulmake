@@ -28,7 +28,7 @@ pub fn add_game(isopath: &Path, dstpath: &Path, name: String) -> Result<()> {
     };
 
 
-    println!("Creating {} from {:?}", name, isopath.file_name());
+    println!("Creating {} from {:?}", name, isopath.file_name().unwrap());
     ulcfg.add_game(&isopath, &dstpath, name)?;
     ulcfg.save(&ulpath)?;
 
