@@ -96,9 +96,9 @@ impl Ulcfg {
         Ok(())
     }
 
-    pub fn delete_game_by_name(&mut self, name: &String, path: &Path) -> Result<()> {
+    pub fn delete_game_by_name(&mut self, name: String, path: &Path) -> Result<()> {
         for (index, game) in self.game_list.iter().enumerate() {
-            if &game.opl_name == name {
+            if game.opl_name == name {
                 self.delete_game(index, path)?;
                 return Ok(())
             }

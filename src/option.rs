@@ -35,7 +35,7 @@ pub fn add_game(isopath: &Path, dstpath: &Path, name: String) -> Result<()> {
     Ok(())
 }
 
-pub fn delete_game_by_name(path: &Path, name: &String) -> Result<()> {
+pub fn delete_game_by_name(path: &Path, name: String) -> Result<()> {
     let ulpath = path.join(Path::new("ul.cfg"));
     let mut ulcfg = Ulcfg::load(&ulpath)?;
     ulcfg.delete_game_by_name(name, path)?;
