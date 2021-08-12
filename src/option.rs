@@ -22,6 +22,11 @@ pub fn add_game(isopath: &Path, dstpath: &Path, name: String) -> Result<()> {
         return Err(Error::from(ErrorKind::OutOfMemory))
     }
 
+    if name.len() > 32 {
+        // OPL name cannot be longer than 32 bytes
+        return Err(Error::from(ErrorKind::InvalidInput))
+    }
+
     let mut ulcfg = match ulpath.exists() {
         true => Ulcfg::load(&ulpath)?,
         false => Ulcfg::new()
