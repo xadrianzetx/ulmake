@@ -21,11 +21,9 @@ pub struct Ulcfg {
 }
 
 impl Ulcfg {
-    pub fn new() -> Result<Ulcfg> {
+    pub fn new() -> Ulcfg {
         let game_list: Vec<Game> = Vec::new();
-        let ulcfg = Ulcfg { game_list: game_list };
-        
-        Ok(ulcfg)
+        Ulcfg { game_list }
     }
 
     pub fn load(path: &Path) -> Result<Ulcfg> {
@@ -40,13 +38,13 @@ impl Ulcfg {
             let serial = parser::parse_to_string(gbuff, UL_SERIAL_START, UL_SERIAL_END);
             let num_chunks = gbuff[UL_SERIAL_END] as i32;
             
-            let entry = Game::from_config(opl_name, serial, num_chunks).unwrap();
+            let entry = Game::from_config(opl_name, serial, num_chunks);
             game_list.push(entry);
 
             start_index += UL_GAME_SIZE;
         }
         
-        let ulcfg = Ulcfg { game_list: game_list };
+        let ulcfg = Ulcfg { game_list };
         Ok(ulcfg)
     }
 

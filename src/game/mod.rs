@@ -21,25 +21,23 @@ impl Game {
         let serial = serial::get_serial_from_iso(isopath)?;
 
         let game = Game {
-            opl_name: opl_name,
-            crc_name: crc_name,
-            serial: serial,
+            opl_name,
+            crc_name,
+            serial,
             num_chunks: 0
         };
 
         Ok(game)
     }
 
-    pub fn from_config(opl_name: String, serial: String, num_chunks: i32) -> Result<Game> {
+    pub fn from_config(opl_name: String, serial: String, num_chunks: i32) -> Game {
         let crc_name = crc::get_game_name_crc(&opl_name);
-        let game = Game {
-            opl_name: opl_name,
-            crc_name: crc_name,
-            serial: serial,
-            num_chunks: num_chunks
-        };
-
-        Ok(game)
+        Game {
+            opl_name,
+            crc_name,
+            serial,
+            num_chunks
+        }
     }
 
     pub fn split(&mut self, isopath: &Path, dstpath: &Path) -> Result<()> {

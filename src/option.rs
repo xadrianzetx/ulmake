@@ -24,7 +24,7 @@ pub fn add_game(isopath: &Path, dstpath: &Path, name: String) -> Result<()> {
 
     let mut ulcfg = match ulpath.exists() {
         true => Ulcfg::load(&ulpath)?,
-        false => Ulcfg::new().unwrap()
+        false => Ulcfg::new()
     };
 
 
