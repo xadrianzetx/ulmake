@@ -5,7 +5,7 @@ edition = "2018"
 authors = ["xadrianzetx"]
 license = "MIT"
 repository = "https://github.com/xadrianzetx/ulmake"
-description = ""
+description = "A CLI utility that helps to manage PS2 games in .ul format (similarly to USB Util)"
 
 [dependencies]
 clap = "2.33.3"
