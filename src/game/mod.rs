@@ -12,7 +12,7 @@ pub struct Game {
     crc_name: String,
     pub opl_name: String,
     pub serial: String,
-    pub num_chunks: Option<i32>
+    pub num_chunks: i32
 }
 
 impl Game {
@@ -24,7 +24,7 @@ impl Game {
             opl_name: opl_name,
             crc_name: crc_name,
             serial: serial,
-            num_chunks: None
+            num_chunks: 0
         };
 
         Ok(game)
@@ -36,7 +36,7 @@ impl Game {
             opl_name: opl_name,
             crc_name: crc_name,
             serial: serial,
-            num_chunks: Some(num_chunks)
+            num_chunks: num_chunks
         };
 
         Ok(game)
@@ -67,15 +67,15 @@ impl Game {
             println!("Done.");
         }
 
-        self.num_chunks = Some(n_chunks);
+        self.num_chunks = n_chunks;
         Ok(())
     }
 
     pub fn delete_chunks(&self, ulpath: &Path) -> Result<()> {
         println!("Deleting {}", &self.opl_name);
 
-        for chunk in 0..self.num_chunks.unwrap() {
-            print!("Deleting chunk {} of {}...", chunk + 1, self.num_chunks.unwrap());
+        for chunk in 0..self.num_chunks {
+            print!("Deleting chunk {} of {}...", chunk + 1, self.num_chunks);
             let chunkname = format!("ul.{}.{}.0{}", &self.crc_name, &self.serial, chunk);
             let chunkpath = ulpath.join(Path::new(&chunkname));
             remove_file(chunkpath)?;

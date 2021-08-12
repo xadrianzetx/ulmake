@@ -66,7 +66,7 @@ impl Ulcfg {
             ulbuff.extend_from_slice(&serial_bytes);
 
             // next byte is number of game chunks
-            let num_chunks = entry.num_chunks.unwrap() as u8;
+            let num_chunks = entry.num_chunks as u8;
             ulbuff.push(num_chunks);
 
             // last 16 bytes are just constants
