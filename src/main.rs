@@ -9,50 +9,60 @@ fn main() {
     let matches = App::new("ulmake")
         .version("0.1.0")
         .author("xadrianzetx")
-        .about("TODO")
+        .about("A CLI utility that helps to manage PS2 games in .ul format (similarly to USB Util)")
         .subcommand(
             App::new("add")
+            .about("Adds PS2 game to ul.cfg along with FAT32 compliant game image chunks")
             .args(&[
                 Arg::with_name("image")
                     .short("i")
                     .takes_value(true)
-                    .required(true),
+                    .required(true)
+                    .help("Path to PS2 .iso disk image"),
                 Arg::with_name("name")
                     .short("n")
                     .takes_value(true)
-                    .required(true),
+                    .required(true)
+                    .help("Name under which game will be visible in OPL. Must be <= 32 characters"),
                 Arg::with_name("ulpath")
                     .short("p")
                     .takes_value(true)
                     .required(true)
+                    .help("Path to directory with ul.cfg file. If there is no such file there, new one will be created")
             ])
         )
         .subcommand(
             App::new("delete")
+            .about("Removes PS2 game from ul.cfg along with image chunks")
             .args(&[
                 Arg::with_name("index")
                     .required_unless("name")
                     .conflicts_with("name")
                     .short("i")
-                    .takes_value(true),
+                    .takes_value(true)
+                    .help("ul.cfg index of game that is to be deleted. Use `ulmake list` to get valid indices"),
                 Arg::with_name("name")
                     .required_unless("index")
                     .conflicts_with("index")
                     .short("n")
-                    .takes_value(true),
+                    .takes_value(true)
+                    .help("OPL name of game that is to be deleted. Use `ulmake list` to get valid names"),
                 Arg::with_name("ulpath")
                     .short("p")
                     .takes_value(true)
                     .required(true)
+                    .help("Path to directory with ul.cfg file")
             ])
         )
         .subcommand(
             App::new("list")
+            .about("Lists current entries in ul.cfg")
             .arg(
                 Arg::with_name("ulpath")
                     .short("p")
                     .takes_value(true)
                     .required(true)
+                    .help("Path to directory with ul.cfg file")
             )
         )
         .get_matches();
