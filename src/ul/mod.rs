@@ -1,4 +1,5 @@
 mod parser;
+mod table;
 
 use crate::game::Game;
 
@@ -79,11 +80,23 @@ impl Ulcfg {
     }
 
     pub fn list_games(&self) {
-        // TODO make pretty print
-        println!("Index|Name|Serial");
+        let col_sizes = vec![5, UL_GAME_NAME_END, UL_SERIAL_END - UL_SERIAL_START];
+        let col_names = vec!["Index", "Name", "Serial"];
+        let hline = table::make_hline(&col_sizes);
+        let header = table::make_row(&col_names, &col_sizes);
+
+        println!("{}", hline);
+        println!("{}", header);
+        println!("{}", hline);
+
         for (pos, game) in self.game_list.iter().enumerate() {
-            println!("{}|{}|{}", pos, game.opl_name, game.serial);
+            let pos_str = pos.to_string();
+            let contents = vec![&*pos_str, game.opl_name.as_str(), game.serial.as_str()];
+            let row = table::make_row(&contents, &col_sizes);
+            println!("{}", row);
         }
+
+        println!("{}", hline);
     }
 
     pub fn add_game(&mut self, isopath: &Path, dstpath: &Path, opl_name: String) -> Result<()> {
