@@ -1,13 +1,19 @@
 use crate::ul::Ulcfg;
 
 use fs2;
-use std::fs::metadata;
+use std::fs::{canonicalize, metadata};
 use std::path::Path;
 use std::io::{Result, Error, ErrorKind};
 
 pub fn list_games(path: &Path) -> Result<()> {
     let ulpath = path.join(Path::new("ul.cfg"));
     let ulcfg = Ulcfg::load(&ulpath)?;
+
+    let free = fs2::available_space(&path)? as f64;
+    let realpath = canonicalize(&path)?;
+
+    println!("ul.cfg at {}", realpath.display());
+    println!("Available space: {:.2}GB", free / 1000000000.0);
     ulcfg.list_games();
 
     Ok(())
