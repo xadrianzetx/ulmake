@@ -1,9 +1,9 @@
-mod ul;
 mod game;
 mod option;
+mod ul;
 
-use std::path::Path;
 use clap::{App, Arg};
+use std::path::Path;
 
 fn main() {
     let matches = App::new("ulmake")
@@ -74,7 +74,7 @@ fn main() {
 
         match option::add_game(&isopath, &dstpath, opl_name) {
             Ok(()) => (),
-            Err(_) => println!("Could not create the game")
+            Err(_) => println!("Could not create the game"),
         }
     }
 
@@ -85,10 +85,10 @@ fn main() {
                 let uidx = index.parse::<usize>().unwrap();
                 match option::delete_game_by_index(path, uidx) {
                     Ok(()) => (),
-                    Err(_) => println!("Could not delete game by index")
+                    Err(_) => println!("Could not delete game by index"),
                 }
-            },
-            None => ()
+            }
+            None => (),
         }
 
         match matches.value_of("name") {
@@ -96,10 +96,10 @@ fn main() {
                 let namestr = String::from(name);
                 match option::delete_game_by_name(path, namestr) {
                     Ok(()) => (),
-                    Err(_) => println!("Could not delete game by name")
+                    Err(_) => println!("Could not delete game by name"),
                 }
-            },
-            None => ()
+            }
+            None => (),
         }
     }
 
@@ -107,7 +107,7 @@ fn main() {
         let path = Path::new(matches.value_of("ulpath").unwrap());
         match option::list_games(&path) {
             Ok(()) => (),
-            Err(_) => println!("Could not load ul.cfg")
+            Err(_) => println!("Could not load ul.cfg"),
         }
     }
 }

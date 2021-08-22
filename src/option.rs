@@ -2,8 +2,8 @@ use crate::ul::Ulcfg;
 
 use fs2;
 use std::fs::{canonicalize, metadata};
+use std::io::{Error, ErrorKind, Result};
 use std::path::Path;
-use std::io::{Result, Error, ErrorKind};
 
 pub fn list_games(path: &Path) -> Result<()> {
     let ulpath = path.join(Path::new("ul.cfg"));
@@ -25,19 +25,18 @@ pub fn add_game(isopath: &Path, dstpath: &Path, name: String) -> Result<()> {
     let iso = metadata(&isopath)?;
 
     if iso.len() >= dstspace {
-        return Err(Error::from(ErrorKind::OutOfMemory))
+        return Err(Error::from(ErrorKind::OutOfMemory));
     }
 
     if name.len() > 32 {
         // OPL name cannot be longer than 32 bytes
-        return Err(Error::from(ErrorKind::InvalidInput))
+        return Err(Error::from(ErrorKind::InvalidInput));
     }
 
     let mut ulcfg = match ulpath.exists() {
         true => Ulcfg::load(&ulpath)?,
-        false => Ulcfg::new()
+        false => Ulcfg::new(),
     };
-
 
     println!("Creating {} from {:?}", name, isopath.file_name().unwrap());
     ulcfg.add_game(&isopath, &dstpath, name)?;

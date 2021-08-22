@@ -36,7 +36,7 @@ pub fn get_game_name_crc(name: &String) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_shortest_allowed_lowercase() {
         let name = String::from("f");

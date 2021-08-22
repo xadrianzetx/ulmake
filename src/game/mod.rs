@@ -1,10 +1,10 @@
 mod crc;
 mod serial;
 
-use std::path::Path;
+use std::fs::{metadata, remove_file, File};
 use std::io::prelude::*;
 use std::io::Result;
-use std::fs::{File, metadata, remove_file};
+use std::path::Path;
 
 const CHUNK_SIZE: u64 = 1_073_741_824;
 
@@ -12,7 +12,7 @@ pub struct Game {
     crc_name: String,
     pub opl_name: String,
     pub serial: String,
-    pub num_chunks: i32
+    pub num_chunks: i32,
 }
 
 impl Game {
@@ -24,7 +24,7 @@ impl Game {
             opl_name,
             crc_name,
             serial,
-            num_chunks: 0
+            num_chunks: 0,
         };
 
         Ok(game)
@@ -36,7 +36,7 @@ impl Game {
             opl_name,
             crc_name,
             serial,
-            num_chunks
+            num_chunks,
         }
     }
 

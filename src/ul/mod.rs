@@ -3,9 +3,9 @@ mod table;
 
 use crate::game::Game;
 
-use std::path::Path;
 use std::fs::{read, write};
-use std::io::{Result, Error, ErrorKind};
+use std::io::{Error, ErrorKind, Result};
+use std::path::Path;
 
 const UL_GAME_SIZE: usize = 64;
 const UL_GAME_NAME_START: usize = 0;
@@ -18,7 +18,7 @@ const SCEC_DVD_MEDIA_TYPE: u8 = 0x14;
 const USBEXTREME_MAGIC: u8 = 0x08;
 
 pub struct Ulcfg {
-    game_list: Vec<Game>
+    game_list: Vec<Game>,
 }
 
 impl Ulcfg {
@@ -38,13 +38,13 @@ impl Ulcfg {
             let opl_name = parser::parse_to_string(gbuff, UL_GAME_NAME_START, UL_GAME_NAME_END);
             let serial = parser::parse_to_string(gbuff, UL_SERIAL_START, UL_SERIAL_END);
             let num_chunks = gbuff[UL_SERIAL_END] as i32;
-            
+
             let entry = Game::from_config(opl_name, serial, num_chunks);
             game_list.push(entry);
 
             start_index += UL_GAME_SIZE;
         }
-        
+
         let ulcfg = Ulcfg { game_list };
         Ok(ulcfg)
     }
@@ -111,7 +111,7 @@ impl Ulcfg {
         for (index, game) in self.game_list.iter().enumerate() {
             if game.opl_name == name {
                 self.delete_game(index, path)?;
-                return Ok(())
+                return Ok(());
             }
         }
 
@@ -120,7 +120,7 @@ impl Ulcfg {
 
     pub fn delete_game_by_index(&mut self, index: usize, path: &Path) -> Result<()> {
         if index >= self.game_list.len() {
-            return Err(Error::from(ErrorKind::InvalidInput))
+            return Err(Error::from(ErrorKind::InvalidInput));
         }
 
         self.delete_game(index, path)?;
