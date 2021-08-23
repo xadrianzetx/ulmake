@@ -3,7 +3,8 @@ mod option;
 mod ul;
 
 use clap::{App, Arg};
-use std::path::Path;
+use std::env::current_dir;
+use std::path::{Path, PathBuf};
 
 fn main() {
     let matches = App::new("ulmake")
@@ -104,8 +105,12 @@ fn main() {
     }
 
     if let Some(matches) = matches.subcommand_matches("list") {
-        let path = Path::new(matches.value_of("ulpath").unwrap());
-        match option::list_games(&path) {
+        let pbuff = match matches.value_of("ulpath") {
+            Some(p) => PathBuf::from(p),
+            None => current_dir().unwrap(),
+        };
+
+        match option::list_games(&pbuff.as_path()) {
             Ok(()) => (),
             Err(_) => println!("Could not load ul.cfg"),
         }
