@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 
 fn main() {
     let matches = App::new("ulmake")
-        .version("0.1.0")
+        .version("0.1.1")
         .author("xadrianzetx")
         .about(concat!("A CLI utility that helps to manage PlayStation 2 games\n",
                        "in USBAdvance/Extreme format (similarly to USB Util)"))
