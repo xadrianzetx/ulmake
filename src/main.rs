@@ -10,49 +10,57 @@ fn main() {
     let matches = App::new("ulmake")
         .version("0.1.0")
         .author("xadrianzetx")
-        .about("A CLI utility that helps to manage PS2 games in .ul format (similarly to USB Util)")
+        .about(concat!("A CLI utility that helps to manage PlayStation 2 games\n",
+                       "in USBAdvance/Extreme format (similarly to USB Util)"))
         .subcommand(
             App::new("add")
-            .about("Adds PS2 game to ul.cfg along with FAT32 compliant game image chunks")
+            .about(concat!("Creates USBAdvance/Extreme format PlayStation 2 game\n",
+                           "from .iso and registers it in ul.cfg file"))
             .args(&[
                 Arg::with_name("image")
-                    .short("i")
+                    .index(1)
                     .takes_value(true)
                     .required(true)
-                    .help("Path to PS2 .iso disk image"),
+                    .help("Path to PlayStation 2 .iso disk image"),
+                Arg::with_name("ulpath")
+                    .index(2)
+                    .takes_value(true)
+                    .required(true)
+                    .help(concat!("Directory where game should be created\n",
+                                  "If ul.cfg is not found there, new one will be created")),
                 Arg::with_name("name")
                     .short("n")
                     .takes_value(true)
-                    .required(true)
-                    .help("Name under which game will be visible in OPL. Must be <= 32 characters"),
-                Arg::with_name("ulpath")
-                    .short("p")
-                    .takes_value(true)
-                    .required(true)
-                    .help("Path to directory with ul.cfg file. If there is no such file there, new one will be created")
+                    .help(concat!("Name under which game will be visible in OPL\n",
+                                  "Must be <= 32 characters\n",
+                                  "If not specified, .iso name is taken"))
             ])
         )
         .subcommand(
             App::new("delete")
-            .about("Removes PS2 game from ul.cfg along with image chunks")
+            .about(concat!("Removes PlayStation 2 game from ul.cfg along with ul. chunks\n",
+                           "Game can be removed either by ul.cfg index or by OPL name"))
             .args(&[
+                Arg::with_name("ulpath")
+                    .index(1)
+                    .takes_value(true)
+                    .required(true)
+                    .help(concat!("Directory from which game should be deleted\n",
+                                  "Must contain valid ul.cfg file")),
                 Arg::with_name("index")
                     .required_unless("name")
                     .conflicts_with("name")
                     .short("i")
                     .takes_value(true)
-                    .help("ul.cfg index of game that is to be deleted. Use `ulmake list` to get valid indices"),
+                    .help(concat!("ul.cfg index of game that is to be deleted\n",
+                                  "Use `ulmake list` to get valid indices")),
                 Arg::with_name("name")
                     .required_unless("index")
                     .conflicts_with("index")
                     .short("n")
                     .takes_value(true)
-                    .help("OPL name of game that is to be deleted. Use `ulmake list` to get valid names"),
-                Arg::with_name("ulpath")
-                    .short("p")
-                    .takes_value(true)
-                    .required(true)
-                    .help("Path to directory with ul.cfg file")
+                    .help(concat!("OPL name of game that is to be deleted\n",
+                                  "Use `ulmake list` to get valid names"))
             ])
         )
         .subcommand(
@@ -60,10 +68,10 @@ fn main() {
             .about("Lists current entries in ul.cfg")
             .arg(
                 Arg::with_name("ulpath")
-                    .short("p")
+                    .index(1)
                     .takes_value(true)
-                    .required(true)
-                    .help("Path to directory with ul.cfg file")
+                    .help(concat!("Directory containing ul.cfg file\n",
+                                  "Defaults to current dir if not specified"))
             )
         )
         .get_matches();
