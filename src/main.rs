@@ -71,7 +71,13 @@ fn main() {
     if let Some(matches) = matches.subcommand_matches("add") {
         let isopath = Path::new(matches.value_of("image").unwrap());
         let dstpath = Path::new(matches.value_of("ulpath").unwrap());
-        let opl_name = String::from(matches.value_of("name").unwrap());
+        let opl_name = match matches.value_of("name") {
+            Some(n) => String::from(n),
+            None => {
+                let isoname = isopath.file_stem().unwrap();
+                String::from(isoname.to_str().unwrap())
+            }
+        };
 
         match option::add_game(&isopath, &dstpath, opl_name) {
             Ok(()) => (),
