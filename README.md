@@ -6,7 +6,7 @@
 * deleting games from USB with `delete`. This removes all DVD9 image chunks related to particular game from USB, and deletes game entry from `ul.cfg`.
 * listing current games on USB with `list`.
 
-# Build from source
+## Build from source
 
 ```
 git clone https://github.com/xadrianzetx/ulmake.git && cd ulmake
