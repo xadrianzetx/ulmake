@@ -1,6 +1,6 @@
-pub fn parse_to_string(game_buff: &[u8], start: usize, end: usize) -> String {
-    let mut buffer = vec![0; end - start];
-    buffer.copy_from_slice(&game_buff[start..end]);
+pub fn parse_to_string(game_buff: &[u8], start: usize, size: usize) -> String {
+    let mut buffer = vec![0; size];
+    buffer.copy_from_slice(&game_buff[start..start + size]);
 
     // Strip buffer from any null bytes
     let buffer = buffer

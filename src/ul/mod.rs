@@ -9,11 +9,12 @@ use std::path::Path;
 
 const UL_GAME_SIZE: usize = 64;
 const UL_GAME_NAME_START: usize = 0;
-const UL_GAME_NAME_END: usize = 32;
+const UL_GAME_NAME_SIZE: usize = 32;
 const UL_SERIAL_START: usize = 35;
-const UL_SERIAL_END: usize = 47;
+const UL_SERIAL_SIZE: usize = 12;
 const UL_EMPTY_SIZE: usize = 4;
 const UL_NAME_EXT_SIZE: usize = 10;
+const UL_CHUNK_NUM_INDEX: usize = 47;
 const SCEC_DVD_MEDIA_TYPE: u8 = 0x14;
 const USBEXTREME_MAGIC: u8 = 0x08;
 
@@ -35,9 +36,9 @@ impl Ulcfg {
 
         for _ in 0..num_games {
             let gbuff = &ulbuff[start_index..start_index + UL_GAME_SIZE];
-            let opl_name = parser::parse_to_string(gbuff, UL_GAME_NAME_START, UL_GAME_NAME_END);
-            let serial = parser::parse_to_string(gbuff, UL_SERIAL_START, UL_SERIAL_END);
-            let num_chunks = gbuff[UL_SERIAL_END] as i32;
+            let opl_name = parser::parse_to_string(gbuff, UL_GAME_NAME_START, UL_GAME_NAME_SIZE);
+            let serial = parser::parse_to_string(gbuff, UL_SERIAL_START, UL_SERIAL_SIZE);
+            let num_chunks = gbuff[UL_CHUNK_NUM_INDEX] as i32;
 
             let entry = Game::from_config(opl_name, serial, num_chunks);
             game_list.push(entry);
@@ -54,14 +55,12 @@ impl Ulcfg {
 
         for entry in &self.game_list {
             // first 32 bytes are padded OPL game name
-            let game_name_size = UL_GAME_NAME_END - UL_GAME_NAME_START;
-            let game_name_bytes = parser::compose_from_str(&entry.opl_name, game_name_size);
+            let game_name_bytes = parser::compose_from_str(&entry.opl_name, UL_GAME_NAME_SIZE);
             ulbuff.extend_from_slice(&game_name_bytes);
 
             // next 15 bytes are serial with `ul.` prefix and padding
             ulbuff.extend_from_slice(&vec![0x75, 0x6c, 0x2e]);
-            let serial_size = UL_SERIAL_END - UL_SERIAL_START;
-            let serial_bytes = parser::compose_from_str(&entry.serial, serial_size);
+            let serial_bytes = parser::compose_from_str(&entry.serial, UL_SERIAL_SIZE);
             ulbuff.extend_from_slice(&serial_bytes);
 
             // next byte is number of game chunks
@@ -80,8 +79,9 @@ impl Ulcfg {
     }
 
     pub fn list_games(&self) {
-        let col_sizes = vec![5, UL_GAME_NAME_END, UL_SERIAL_END - UL_SERIAL_START];
         let col_names = vec!["Index", "Name", "Serial"];
+        let index_width = col_names[0].len();
+        let col_sizes = vec![index_width, UL_GAME_NAME_SIZE, UL_SERIAL_SIZE];
         let hline = table::make_hline(&col_sizes);
         let header = table::make_row(&col_names, &col_sizes);
 
