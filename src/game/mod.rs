@@ -3,7 +3,7 @@ mod serial;
 
 use std::fs::{metadata, remove_file, File};
 use std::io::prelude::*;
-use std::io::Result;
+use std::io::{copy, Result, SeekFrom};
 use std::path::Path;
 
 const CHUNK_SIZE: u64 = 1_073_741_824;
@@ -56,9 +56,9 @@ impl Game {
             let chunkpath = dstpath.join(Path::new(&chunkname));
             let mut dst = File::create(chunkpath)?;
 
-            file.seek(std::io::SeekFrom::Start(offset))?;
+            file.seek(SeekFrom::Start(offset))?;
             let mut src = file.take(CHUNK_SIZE);
-            std::io::copy(&mut src, &mut dst)?;
+            copy(&mut src, &mut dst)?;
             file = src.into_inner();
 
             offset += CHUNK_SIZE;
