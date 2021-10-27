@@ -3,7 +3,7 @@ mod serial;
 
 use std::fs::{metadata, remove_file, File};
 use std::io::prelude::*;
-use std::io::{copy, Result, SeekFrom};
+use std::io::{copy, stdout, Result, SeekFrom};
 use std::path::Path;
 
 const CHUNK_SIZE: u64 = 1_073_741_824;
@@ -50,6 +50,7 @@ impl Game {
 
         for chunk in 0..n_chunks {
             print!("Creating chunk {} of {}...", chunk + 1, n_chunks);
+            stdout().flush().unwrap();
 
             // even largest ps2 game should not be over 9 chunks
             let chunkname = format!("ul.{}.{}.0{}", &self.crc_name, &self.serial, chunk);
