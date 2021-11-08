@@ -16,7 +16,7 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn from_iso(isopath: &Path, opl_name: String) -> Result<Game> {
+    pub fn from_iso(isopath: &Path, opl_name: String) -> Result<Self> {
         let crc_name = crc::get_game_name_crc(&opl_name);
         let serial = iso::get_serial_from_iso(isopath)?;
 
@@ -30,7 +30,7 @@ impl Game {
         Ok(game)
     }
 
-    pub fn from_config(opl_name: String, serial: String, num_chunks: i32) -> Game {
+    pub fn from_config(opl_name: String, serial: String, num_chunks: i32) -> Self {
         let crc_name = crc::get_game_name_crc(&opl_name);
         Game {
             opl_name,
