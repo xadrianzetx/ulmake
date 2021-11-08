@@ -1,3 +1,4 @@
+use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{Error, ErrorKind, Result};
@@ -32,4 +33,9 @@ pub fn get_serial_from_iso(path: &Path) -> Result<String> {
         }
         _ => Err(Error::from(ErrorKind::NotFound)),
     }
+}
+
+pub fn get_size_from_iso(path: &Path) -> Result<u64> {
+    let metadata = fs::metadata(path)?;
+    Ok(metadata.len())
 }
