@@ -9,6 +9,7 @@ use std::path::Path;
 const CHUNK_SIZE: u64 = 1_073_741_824;
 
 pub struct Game {
+    size: u64,
     crc_name: String,
     pub opl_name: String,
     pub serial: String,
@@ -19,8 +20,10 @@ impl Game {
     pub fn from_iso(isopath: &Path, opl_name: String) -> Result<Self> {
         let crc_name = crc::get_game_name_crc(&opl_name);
         let serial = iso::get_serial_from_iso(isopath)?;
+        let size = iso::get_size_from_iso(isopath)?;
 
         let game = Game {
+            size,
             opl_name,
             crc_name,
             serial,
