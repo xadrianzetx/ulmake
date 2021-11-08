@@ -1,5 +1,5 @@
 mod crc;
-mod serial;
+mod iso;
 
 use std::fs::{metadata, remove_file, File};
 use std::io::prelude::*;
@@ -18,7 +18,7 @@ pub struct Game {
 impl Game {
     pub fn from_iso(isopath: &Path, opl_name: String) -> Result<Game> {
         let crc_name = crc::get_game_name_crc(&opl_name);
-        let serial = serial::get_serial_from_iso(isopath)?;
+        let serial = iso::get_serial_from_iso(isopath)?;
 
         let game = Game {
             opl_name,
