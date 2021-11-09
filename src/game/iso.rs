@@ -35,7 +35,7 @@ pub fn get_serial_from_iso(path: &Path) -> Result<String> {
     }
 }
 
-pub fn get_size_from_iso(path: &Path) -> Result<u64> {
-    let metadata = fs::metadata(path)?;
+pub fn get_size_from_iso(isopath: &Path) -> Result<u64> {
+    let metadata = fs::metadata(isopath)?;
     Ok(metadata.len())
 }
