@@ -1,5 +1,5 @@
 mod crc;
-mod serial;
+mod iso;
 
 use std::fs::{metadata, remove_file, File};
 use std::io::prelude::*;
@@ -9,6 +9,7 @@ use std::path::Path;
 const CHUNK_SIZE: u64 = 1_073_741_824;
 
 pub struct Game {
+    size: u64,
     crc_name: String,
     pub opl_name: String,
     pub serial: String,
@@ -16,11 +17,13 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn from_iso(isopath: &Path, opl_name: String) -> Result<Game> {
+    pub fn from_iso(isopath: &Path, opl_name: String) -> Result<Self> {
         let crc_name = crc::get_game_name_crc(&opl_name);
-        let serial = serial::get_serial_from_iso(isopath)?;
+        let serial = iso::get_serial_from_iso(isopath)?;
+        let size = iso::get_size_from_iso(isopath)?;
 
         let game = Game {
+            size,
             opl_name,
             crc_name,
             serial,
@@ -30,14 +33,24 @@ impl Game {
         Ok(game)
     }
 
-    pub fn from_config(opl_name: String, serial: String, num_chunks: i32) -> Game {
+    pub fn from_config(
+        chunkpath: &Path,
+        opl_name: String,
+        serial: String,
+        num_chunks: i32,
+    ) -> Result<Self> {
         let crc_name = crc::get_game_name_crc(&opl_name);
-        Game {
+        let size = iso::get_size_from_chunks(chunkpath, &crc_name)?;
+
+        let game = Game {
+            size,
             opl_name,
             crc_name,
             serial,
             num_chunks,
-        }
+        };
+
+        Ok(game)
     }
 
     pub fn split(&mut self, isopath: &Path, dstpath: &Path) -> Result<()> {
@@ -82,5 +95,10 @@ impl Game {
         }
 
         Ok(())
+    }
+
+    pub fn iso_size(&self) -> String {
+        let size_gb = self.size as f64 / 1_000_000_000.0;
+        format!("{:.2}GB", size_gb)
     }
 }

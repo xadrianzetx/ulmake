@@ -30,6 +30,7 @@ impl Ulcfg {
 
     pub fn load(path: &Path) -> Result<Ulcfg> {
         let mut game_list: Vec<Game> = Vec::new();
+        let gamedir = path.parent().ok_or(ErrorKind::InvalidData)?;
         let ulbuff = read(path)?;
         let num_games = &ulbuff.len() / UL_GAME_SIZE;
         let mut start_index = 0;
@@ -40,7 +41,9 @@ impl Ulcfg {
             let serial = parser::parse_to_string(gbuff, UL_SERIAL_START, UL_SERIAL_SIZE);
             let num_chunks = gbuff[UL_CHUNK_NUM_INDEX] as i32;
 
-            let entry = Game::from_config(opl_name, serial, num_chunks);
+            // TODO mv serial and num_chunks discovery inside `Game`
+            // will remove most of constants here, and probably parser module
+            let entry = Game::from_config(gamedir, opl_name, serial, num_chunks)?;
             game_list.push(entry);
 
             start_index += UL_GAME_SIZE;
@@ -53,6 +56,8 @@ impl Ulcfg {
     pub fn save(&self, path: &Path) -> Result<()> {
         let mut ulbuff: Vec<u8> = Vec::new();
 
+        // TODO game.name_bytes() and serial_bytes()
+        // and rm parser module
         for entry in &self.game_list {
             // first 32 bytes are padded OPL game name
             let game_name_bytes = parser::compose_from_str(&entry.opl_name, UL_GAME_NAME_SIZE);
@@ -91,6 +96,7 @@ impl Ulcfg {
 
         for (pos, game) in self.game_list.iter().enumerate() {
             let pos_str = pos.to_string();
+            // TODO game.name_str() and serial_str()
             let contents = vec![&*pos_str, game.opl_name.as_str(), game.serial.as_str()];
             let row = table::make_row(&contents, &col_sizes);
             println!("{}", row);
@@ -101,6 +107,8 @@ impl Ulcfg {
 
     pub fn add_game(&mut self, isopath: &Path, dstpath: &Path, opl_name: String) -> Result<()> {
         let mut game = Game::from_iso(isopath, opl_name)?;
+        // TODO call `split` internally when `from_iso` is called
+        // as client should not worry about it. Maybe.
         game.split(isopath, dstpath)?;
         self.game_list.push(game);
 
@@ -128,6 +136,7 @@ impl Ulcfg {
     }
 
     fn delete_game(&mut self, index: usize, path: &Path) -> Result<()> {
+        // FIXME remove then delete chunks
         self.game_list[index].delete_chunks(path)?;
         self.game_list.remove(index);
         Ok(())
