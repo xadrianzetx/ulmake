@@ -96,4 +96,9 @@ impl Game {
 
         Ok(())
     }
+
+    pub fn iso_size(&self) -> String {
+        let size_gb = self.size as f64 / 1_000_000_000.0;
+        format!("{:.2}GB", size_gb)
+    }
 }
