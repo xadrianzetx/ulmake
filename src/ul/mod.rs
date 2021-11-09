@@ -30,6 +30,7 @@ impl Ulcfg {
 
     pub fn load(path: &Path) -> Result<Ulcfg> {
         let mut game_list: Vec<Game> = Vec::new();
+        let gamedir = path.parent().ok_or(ErrorKind::InvalidData)?;
         let ulbuff = read(path)?;
         let num_games = &ulbuff.len() / UL_GAME_SIZE;
         let mut start_index = 0;
@@ -40,7 +41,9 @@ impl Ulcfg {
             let serial = parser::parse_to_string(gbuff, UL_SERIAL_START, UL_SERIAL_SIZE);
             let num_chunks = gbuff[UL_CHUNK_NUM_INDEX] as i32;
 
-            let entry = Game::from_config(opl_name, serial, num_chunks);
+            // TODO mv serial and num_chunks discovery inside `Game`
+            // will remove most of constants here, and probably parser module
+            let entry = Game::from_config(gamedir, opl_name, serial, num_chunks)?;
             game_list.push(entry);
 
             start_index += UL_GAME_SIZE;
