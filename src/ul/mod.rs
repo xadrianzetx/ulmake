@@ -136,9 +136,8 @@ impl Ulcfg {
     }
 
     fn delete_game(&mut self, index: usize, path: &Path) -> Result<()> {
-        // FIXME remove then delete chunks
-        self.game_list[index].delete_chunks(path)?;
-        self.game_list.remove(index);
+        let game = self.game_list.remove(index);
+        game.delete_chunks(path)?;
         Ok(())
     }
 }
