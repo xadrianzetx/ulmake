@@ -88,8 +88,11 @@ impl Game {
 
         for chunk in 0..self.num_chunks {
             print!("Deleting chunk {} of {}...", chunk + 1, self.num_chunks);
+            stdout().flush().unwrap();
+
             let chunkname = format!("ul.{}.{}.0{}", &self.crc_name, &self.serial, chunk);
             let chunkpath = ulpath.join(Path::new(&chunkname));
+
             remove_file(chunkpath)?;
             println!("Done");
         }
