@@ -48,6 +48,14 @@ pub fn get_serial_from_iso(path: &Path) -> Result<String> {
     }
 }
 
+pub fn get_serial_from_chunks(dir: &Path, crc_name: &str) -> Result<String> {
+    let chunks = list_game_chunks(dir, crc_name)?;
+    let chunk_name = chunks[0].to_owned();
+    let segments: Vec<&str> = chunk_name.split(".").collect();
+    let serial = format!("{}.{}", segments[2], segments[3]);
+    Ok(serial)
+}
+
 pub fn get_size_from_iso(isopath: &Path) -> Result<u64> {
     let metadata = fs::metadata(isopath)?;
     Ok(metadata.len())
@@ -64,4 +72,9 @@ pub fn get_size_from_chunks(dir: &Path, crc_name: &str) -> Result<u64> {
     }
 
     Ok(total_size)
+}
+
+pub fn count_chunks(dir: &Path, crc_name: &str) -> Result<i32> {
+    let chunks = list_game_chunks(dir, crc_name)?;
+    Ok(chunks.len() as i32)
 }
