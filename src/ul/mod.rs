@@ -8,13 +8,10 @@ use std::io::{Error, ErrorKind, Result};
 use std::path::Path;
 
 const UL_GAME_SIZE: usize = 64;
-const UL_GAME_NAME_START: usize = 0;
 const UL_GAME_NAME_SIZE: usize = 32;
-const UL_SERIAL_START: usize = 35;
 const UL_SERIAL_SIZE: usize = 12;
 const UL_EMPTY_SIZE: usize = 4;
 const UL_NAME_EXT_SIZE: usize = 10;
-const UL_CHUNK_NUM_INDEX: usize = 47;
 const SCEC_DVD_MEDIA_TYPE: u8 = 0x14;
 const USBEXTREME_MAGIC: u8 = 0x08;
 
@@ -30,20 +27,15 @@ impl Ulcfg {
 
     pub fn load(path: &Path) -> Result<Ulcfg> {
         let mut game_list: Vec<Game> = Vec::new();
-        let gamedir = path.parent().ok_or(ErrorKind::InvalidData)?;
+        let gamepath = path.parent().ok_or(ErrorKind::InvalidData)?;
         let ulbuff = read(path)?;
         let num_games = &ulbuff.len() / UL_GAME_SIZE;
         let mut start_index = 0;
 
         for _ in 0..num_games {
             let gbuff = &ulbuff[start_index..start_index + UL_GAME_SIZE];
-            let opl_name = parser::parse_to_string(gbuff, UL_GAME_NAME_START, UL_GAME_NAME_SIZE);
-            let serial = parser::parse_to_string(gbuff, UL_SERIAL_START, UL_SERIAL_SIZE);
-            let num_chunks = gbuff[UL_CHUNK_NUM_INDEX] as i32;
-
-            // TODO mv serial and num_chunks discovery inside `Game`
-            // will remove most of constants here, and probably parser module
-            let entry = Game::from_config(gamedir, opl_name, serial, num_chunks)?;
+            let opl_name = parser::parse_to_string(gbuff, 0, UL_GAME_NAME_SIZE);
+            let entry = Game::from_config(gamepath, opl_name)?;
             game_list.push(entry);
 
             start_index += UL_GAME_SIZE;

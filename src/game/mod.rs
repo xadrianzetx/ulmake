@@ -33,14 +33,11 @@ impl Game {
         Ok(game)
     }
 
-    pub fn from_config(
-        chunkpath: &Path,
-        opl_name: String,
-        serial: String,
-        num_chunks: i32,
-    ) -> Result<Self> {
+    pub fn from_config(chunkpath: &Path, opl_name: String) -> Result<Self> {
         let crc_name = crc::get_game_name_crc(&opl_name);
         let size = iso::get_size_from_chunks(chunkpath, &crc_name)?;
+        let serial = iso::get_serial_from_chunks(chunkpath, &crc_name)?;
+        let num_chunks = iso::count_chunks(chunkpath, &crc_name)?;
 
         let game = Game {
             size,
