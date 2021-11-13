@@ -74,7 +74,7 @@ pub fn get_size_from_chunks(dir: &Path, crc_name: &str) -> Result<u64> {
     Ok(total_size)
 }
 
-pub fn count_chunks(dir: &Path, crc_name: &str) -> Result<i32> {
+pub fn count_chunks(dir: &Path, crc_name: &str) -> Result<u8> {
     let chunks = list_game_chunks(dir, crc_name)?;
-    Ok(chunks.len() as i32)
+    Ok(chunks.len() as u8)
 }

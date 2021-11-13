@@ -13,7 +13,7 @@ pub struct Game {
     crc_name: String,
     pub opl_name: String,
     pub serial: String,
-    pub num_chunks: i32,
+    pub num_chunks: u8,
 }
 
 impl Game {
@@ -55,7 +55,7 @@ impl Game {
         let mut file = File::open(isopath)?;
 
         let n_chunksf = meta.len() as f64 / CHUNK_SIZE as f64;
-        let n_chunks = n_chunksf.ceil() as i32;
+        let n_chunks = n_chunksf.ceil() as u8;
         let mut offset: u64 = 0;
 
         for chunk in 0..n_chunks {
