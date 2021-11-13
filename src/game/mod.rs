@@ -50,7 +50,7 @@ impl Game {
         Ok(game)
     }
 
-    pub fn split(&mut self, isopath: &Path, dstpath: &Path) -> Result<()> {
+    pub fn create_chunks(&mut self, isopath: &Path, dstpath: &Path) -> Result<()> {
         let meta = metadata(isopath)?;
         let mut file = File::open(isopath)?;
 

@@ -99,9 +99,7 @@ impl Ulcfg {
 
     pub fn add_game(&mut self, isopath: &Path, dstpath: &Path, opl_name: String) -> Result<()> {
         let mut game = Game::from_iso(isopath, opl_name)?;
-        // TODO call `split` internally when `from_iso` is called
-        // as client should not worry about it. Maybe.
-        game.split(isopath, dstpath)?;
+        game.create_chunks(isopath, dstpath)?;
         self.game_list.push(game);
 
         Ok(())
