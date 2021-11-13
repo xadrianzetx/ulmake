@@ -20,12 +20,12 @@ pub struct Ulcfg {
 }
 
 impl Ulcfg {
-    pub fn new() -> Ulcfg {
+    pub fn new() -> Self {
         let game_list: Vec<Game> = Vec::new();
         Ulcfg { game_list }
     }
 
-    pub fn load(path: &Path) -> Result<Ulcfg> {
+    pub fn load(path: &Path) -> Result<Self> {
         let mut game_list: Vec<Game> = Vec::new();
         let gamepath = path.parent().ok_or(ErrorKind::InvalidData)?;
         let ulbuff = read(path)?;
