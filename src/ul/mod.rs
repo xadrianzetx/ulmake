@@ -72,9 +72,8 @@ impl Ulcfg {
     }
 
     pub fn list_games(&self) {
-        let col_names = vec!["Index", "Name", "Serial"];
-        let index_width = col_names[0].len();
-        let col_sizes = vec![index_width, UL_GAME_NAME_SIZE, UL_SERIAL_SIZE];
+        let col_names = vec!["Index", "Name", "Serial", "Size"];
+        let col_sizes = vec![5, UL_GAME_NAME_SIZE, UL_SERIAL_SIZE, 6];
         let hline = table::make_hline(&col_sizes);
         let header = table::make_row(&col_names, &col_sizes);
 
@@ -84,7 +83,13 @@ impl Ulcfg {
 
         for (pos, game) in self.game_list.iter().enumerate() {
             let pos_str = pos.to_string();
-            let contents = vec![&*pos_str, game.opl_name(), game.serial()];
+            let game_size = game.formatted_size();
+            let contents = vec![
+                &*pos_str,
+                game.opl_name(),
+                game.serial(),
+                game_size.as_str(),
+            ];
             let row = table::make_row(&contents, &col_sizes);
             println!("{}", row);
         }
