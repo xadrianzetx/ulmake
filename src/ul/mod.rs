@@ -48,20 +48,18 @@ impl Ulcfg {
     pub fn save(&self, path: &Path) -> Result<()> {
         let mut ulbuff: Vec<u8> = Vec::new();
 
-        // TODO game.name_bytes() and serial_bytes()
-        // and rm parser module
         for entry in &self.game_list {
             // first 32 bytes are padded OPL game name
-            let game_name_bytes = parser::compose_from_str(&entry.opl_name, UL_GAME_NAME_SIZE);
+            let game_name_bytes = parser::compose_from_str(entry.opl_name(), UL_GAME_NAME_SIZE);
             ulbuff.extend_from_slice(&game_name_bytes);
 
             // next 15 bytes are serial with `ul.` prefix and padding
             ulbuff.extend_from_slice(&vec![0x75, 0x6c, 0x2e]);
-            let serial_bytes = parser::compose_from_str(&entry.serial, UL_SERIAL_SIZE);
+            let serial_bytes = parser::compose_from_str(entry.serial(), UL_SERIAL_SIZE);
             ulbuff.extend_from_slice(&serial_bytes);
 
             // next byte is number of game chunks
-            ulbuff.push(entry.num_chunks);
+            ulbuff.push(entry.num_chunks());
 
             // last 16 bytes are just constants
             ulbuff.push(SCEC_DVD_MEDIA_TYPE);
@@ -87,8 +85,7 @@ impl Ulcfg {
 
         for (pos, game) in self.game_list.iter().enumerate() {
             let pos_str = pos.to_string();
-            // TODO game.name_str() and serial_str()
-            let contents = vec![&*pos_str, game.opl_name.as_str(), game.serial.as_str()];
+            let contents = vec![&*pos_str, game.opl_name(), game.serial()];
             let row = table::make_row(&contents, &col_sizes);
             println!("{}", row);
         }
@@ -106,7 +103,7 @@ impl Ulcfg {
 
     pub fn delete_game_by_name(&mut self, name: String, path: &Path) -> Result<()> {
         for (index, game) in self.game_list.iter().enumerate() {
-            if game.opl_name == name {
+            if game.opl_name() == name.as_str() {
                 self.delete_game(index, path)?;
                 return Ok(());
             }

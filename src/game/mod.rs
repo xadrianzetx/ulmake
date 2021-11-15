@@ -11,9 +11,9 @@ const CHUNK_SIZE: u64 = 1_073_741_824;
 pub struct Game {
     size: u64,
     crc_name: String,
-    pub opl_name: String,
-    pub serial: String,
-    pub num_chunks: u8,
+    opl_name: String,
+    serial: String,
+    num_chunks: u8,
 }
 
 impl Game {
@@ -95,6 +95,18 @@ impl Game {
         }
 
         Ok(())
+    }
+
+    pub fn serial(&self) -> &str {
+        self.serial.as_str()
+    }
+
+    pub fn opl_name(&self) -> &str {
+        self.opl_name.as_str()
+    }
+
+    pub fn num_chunks(&self) -> u8 {
+        self.num_chunks
     }
 
     pub fn iso_size(&self) -> String {
