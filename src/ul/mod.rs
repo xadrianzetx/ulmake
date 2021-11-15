@@ -37,7 +37,6 @@ impl Ulcfg {
             let opl_name = parser::parse_to_string(gbuff, 0, UL_GAME_NAME_SIZE);
             let entry = Game::from_config(gamepath, opl_name)?;
             game_list.push(entry);
-
             start_index += UL_GAME_SIZE;
         }
 
