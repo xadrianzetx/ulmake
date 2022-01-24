@@ -1,10 +1,8 @@
+mod commands;
 mod game;
-mod option;
 mod ul;
 
 use clap::{App, Arg};
-use std::env::current_dir;
-use std::path::{Path, PathBuf};
 
 fn main() {
     let matches = App::new("ulmake")
@@ -94,57 +92,10 @@ fn main() {
         )
         .get_matches();
 
-    if let Some(matches) = matches.subcommand_matches("add") {
-        let isopath = Path::new(matches.value_of("image").unwrap());
-        let dstpath = Path::new(matches.value_of("ulpath").unwrap());
-        let opl_name = match matches.value_of("name") {
-            Some(n) => String::from(n),
-            None => {
-                let isoname = isopath.file_stem().unwrap();
-                String::from(isoname.to_str().unwrap())
-            }
-        };
-
-        match option::add_game(&isopath, &dstpath, opl_name) {
-            Ok(()) => (),
-            Err(_) => println!("Could not create the game"),
-        }
-    }
-
-    if let Some(matches) = matches.subcommand_matches("delete") {
-        let path = Path::new(matches.value_of("ulpath").unwrap());
-        match matches.value_of("index") {
-            Some(index) => {
-                let uidx = index.parse::<usize>().unwrap();
-                match option::delete_game_by_index(path, uidx) {
-                    Ok(()) => (),
-                    Err(_) => println!("Could not delete game by index"),
-                }
-            }
-            None => (),
-        }
-
-        match matches.value_of("name") {
-            Some(name) => {
-                let namestr = String::from(name);
-                match option::delete_game_by_name(path, namestr) {
-                    Ok(()) => (),
-                    Err(_) => println!("Could not delete game by name"),
-                }
-            }
-            None => (),
-        }
-    }
-
-    if let Some(matches) = matches.subcommand_matches("list") {
-        let pbuff = match matches.value_of("ulpath") {
-            Some(p) => PathBuf::from(p),
-            None => current_dir().unwrap(),
-        };
-
-        match option::list_games(&pbuff.as_path()) {
-            Ok(()) => (),
-            Err(_) => println!("Could not load ul.cfg"),
-        }
+    match matches.subcommand() {
+        ("add", Some(args)) => commands::add::add(args),
+        ("delete", Some(args)) => commands::delete::delete(args),
+        ("list", Some(args)) => commands::list::list(args),
+        _ => (),
     }
 }
