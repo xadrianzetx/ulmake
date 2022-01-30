@@ -6,7 +6,7 @@ use clap::{App, Arg};
 
 fn main() {
     let matches = App::new("ulmake")
-        .version("0.2.0")
+        .version("0.3.0")
         .author("xadrianzetx")
         .about(concat!(
             "A CLI utility that helps to manage PlayStation 2 games\n",
