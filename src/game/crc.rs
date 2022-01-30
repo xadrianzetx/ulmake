@@ -5,7 +5,7 @@ fn initialize_crc_table(crc_table: &mut Vec<i32>) {
         let mut crc = index << 24;
         for _ in 0..8 {
             if crc < 0 {
-                crc = crc << 1;
+                crc <<= 1;
             } else {
                 crc = (crc << 1) ^ 0x04c11db7;
             }
@@ -17,7 +17,7 @@ fn initialize_crc_table(crc_table: &mut Vec<i32>) {
 }
 
 #[allow(overflowing_literals)]
-pub fn get_game_name_crc(name: &String) -> String {
+pub fn get_game_name_crc(name: &str) -> String {
     let mut crc_table = vec![0; CRC_TABLE_SIZE as usize];
     initialize_crc_table(&mut crc_table);
 
