@@ -13,7 +13,7 @@ pub fn parse_to_string(game_buff: &[u8], start: usize, size: usize) -> String {
 
 pub fn compose_from_str(string: &str, size: usize) -> Vec<u8> {
     let mut buff = String::from(string).into_bytes();
-    let padding_len = size - &buff.len();
+    let padding_len = size - buff.len();
     let padding = vec![0x00; padding_len];
     buff.extend_from_slice(&padding);
 

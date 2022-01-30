@@ -1,4 +1,4 @@
-pub fn make_hline(col_sizes: &Vec<usize>) -> String {
+pub fn make_hline(col_sizes: &[usize]) -> String {
     let mut buff = vec![0x2b];
 
     for size in col_sizes {
@@ -10,7 +10,7 @@ pub fn make_hline(col_sizes: &Vec<usize>) -> String {
     String::from_utf8(buff).unwrap()
 }
 
-pub fn make_row(cols: &Vec<&str>, col_sizes: &Vec<usize>) -> String {
+pub fn make_row(cols: &[&str], col_sizes: &[usize]) -> String {
     // opening vline
     let mut buff = vec![0x7c];
 

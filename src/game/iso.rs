@@ -15,7 +15,7 @@ fn list_game_chunks(path: &Path, crc_name: &str) -> Result<Vec<String>> {
         .filter(|n| n.contains(crc_name))
         .collect::<Vec<_>>();
 
-    if chunks.len() == 0 {
+    if chunks.is_empty() {
         return Err(Error::from(ErrorKind::NotFound));
     }
 
@@ -38,7 +38,7 @@ pub fn get_serial_from_iso(path: &Path) -> Result<String> {
             // BOOT2 = cdrom0:\SLXS_XXX.XX;1
             // and we are fetching SLXS_XXX.XX from it
             let re = Regex::new("([^:\\\\;]+)(:?;1)?$").unwrap();
-            let boot_path = buffer.lines().nth(0).unwrap();
+            let boot_path = buffer.lines().next().unwrap();
             let boot_file = re.captures(boot_path).unwrap();
 
             let serial = boot_file.get(1).unwrap().as_str();
@@ -51,7 +51,7 @@ pub fn get_serial_from_iso(path: &Path) -> Result<String> {
 pub fn get_serial_from_chunks(dir: &Path, crc_name: &str) -> Result<String> {
     let chunks = list_game_chunks(dir, crc_name)?;
     let chunk_name = chunks[0].to_owned();
-    let segments: Vec<&str> = chunk_name.split(".").collect();
+    let segments: Vec<&str> = chunk_name.split('.').collect();
     let serial = format!("{}.{}", segments[2], segments[3]);
     Ok(serial)
 }

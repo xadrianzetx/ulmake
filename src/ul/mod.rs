@@ -29,7 +29,7 @@ impl Ulcfg {
         let mut game_list: Vec<Game> = Vec::new();
         let gamepath = path.parent().ok_or(ErrorKind::InvalidData)?;
         let ulbuff = read(path)?;
-        let num_games = &ulbuff.len() / UL_GAME_SIZE;
+        let num_games = ulbuff.len() / UL_GAME_SIZE;
         let mut start_index = 0;
 
         for _ in 0..num_games {
@@ -53,7 +53,7 @@ impl Ulcfg {
             ulbuff.extend_from_slice(&game_name_bytes);
 
             // next 15 bytes are serial with `ul.` prefix and padding
-            ulbuff.extend_from_slice(&vec![0x75, 0x6c, 0x2e]);
+            ulbuff.extend_from_slice(&[0x75, 0x6c, 0x2e]);
             let serial_bytes = parser::compose_from_str(entry.serial(), UL_SERIAL_SIZE);
             ulbuff.extend_from_slice(&serial_bytes);
 
@@ -62,9 +62,9 @@ impl Ulcfg {
 
             // last 16 bytes are just constants
             ulbuff.push(SCEC_DVD_MEDIA_TYPE);
-            ulbuff.extend_from_slice(&vec![0x00; UL_EMPTY_SIZE]);
+            ulbuff.extend_from_slice(&[0x00; UL_EMPTY_SIZE]);
             ulbuff.push(USBEXTREME_MAGIC);
-            ulbuff.extend_from_slice(&vec![0x00; UL_NAME_EXT_SIZE]);
+            ulbuff.extend_from_slice(&[0x00; UL_NAME_EXT_SIZE]);
         }
 
         write(path, &ulbuff)?;
