@@ -1,6 +1,6 @@
 # ulmake
 
-`ulmake` is a CLI tool helps to create and manage PlayStation2 games in USBAdvance/Extreme format, similarly to `USB Util`. Current features:
+`ulmake` is a CLI tool that helps to create and manage PlayStation2 games in USBAdvance/Extreme format, similarly to `USB Util`. Current features:
 
 * adding new games to USB with `add`. This ensures that Dual Layer DVD9 images are split to satisfy FAT32 file size limitations, and game entry is correctly added to `ul.cfg` file.
 * deleting games from USB with `delete`. This removes all DVD9 image chunks related to particular game from USB, and deletes game entry from `ul.cfg`.
