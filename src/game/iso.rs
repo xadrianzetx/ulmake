@@ -2,22 +2,21 @@ use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{Error, ErrorKind, Result};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use iso9660::{DirectoryEntry, ISO9660};
 use regex::Regex;
 
 const SYSTEM_CNF_PATH: &str = "/SYSTEM.CNF";
 
-fn list_game_chunks(path: &Path, crc_name: &str) -> Result<Vec<String>> {
-    let chunks = fs::read_dir(path)?
-        .map(|res| res.unwrap().file_name().into_string().unwrap())
-        .filter(|n| n.contains(crc_name))
-        .collect::<Vec<_>>();
+pub struct ISOChunk {
+    pub path: PathBuf,
+}
 
-    if chunks.is_empty() {
-        return Err(Error::from(ErrorKind::NotFound));
-    }
+pub struct GameChunk {
+    pub path: PathBuf,
+    pub crc_name: String,
+}
 
     Ok(chunks)
 }
