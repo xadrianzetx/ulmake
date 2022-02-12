@@ -18,7 +18,10 @@ pub struct GameChunk {
     pub crc_name: String,
 }
 
-    Ok(chunks)
+pub trait Chunk {
+    fn get_serial(&self) -> Result<String>;
+    fn get_size(&self) -> Result<u64>;
+    fn count(&self) -> Result<u8>;
 }
 
 pub fn get_serial_from_iso(path: &Path) -> Result<String> {
