@@ -64,21 +64,18 @@ impl Chunk for ISOChunk {
 impl Chunk for GameChunk {
     fn get_serial(&self) -> Result<String> {
         let chunks = list_game_chunks(&self.path, &self.crc_name)?;
-        let chunk_name = chunks[0].to_owned();
-        let segments: Vec<&str> = chunk_name.split('.').collect();
-        let serial = format!("{}.{}", segments[2], segments[3]);
-        Ok(serial)
+        let serial = chunks.get(0).unwrap().split('.').collect::<Vec<&str>>();
+        Ok(format!("{}.{}", serial[2], serial[3]))
     }
 
     fn get_size(&self) -> Result<u64> {
-        let mut total_size = 0;
-        let chunk_names = list_game_chunks(&self.path, &self.crc_name)?;
-
-        for chunk_name in chunk_names.iter() {
-            let filepath = Path::new(&self.path).join(chunk_name);
-            let metadata = fs::metadata(filepath)?;
-            total_size += metadata.len();
-        }
+        let chunks = list_game_chunks(&self.path, &self.crc_name)?;
+        let total_size = chunks
+            .into_iter()
+            .map(|e| fs::metadata(Path::new(&self.path).join(e)).unwrap().len())
+            .collect::<Vec<u64>>()
+            .iter()
+            .sum();
 
         Ok(total_size)
     }
