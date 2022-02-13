@@ -1,17 +1,19 @@
 mod crc;
 mod iso;
 
+use crate::game::iso::Chunk;
+
 use std::fs::{metadata, remove_file, File};
 use std::io::prelude::*;
 use std::io::{copy, stdout, Result, SeekFrom};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 const CHUNK_SIZE: u64 = 1_073_741_824;
 
 pub struct Game {
-    size: u64,
-    crc_name: String,
     opl_name: String,
+    crc_name: String,
+    size: u64,
     serial: String,
     num_chunks: u8,
 }
@@ -19,15 +21,16 @@ pub struct Game {
 impl Game {
     pub fn from_iso(isopath: &Path, opl_name: String) -> Result<Self> {
         let crc_name = crc::get_game_name_crc(&opl_name);
-        let serial = iso::get_serial_from_iso(isopath)?;
-        let size = iso::get_size_from_iso(isopath)?;
+        let chunk = iso::ISOChunk {
+            path: PathBuf::from(isopath),
+        };
 
         let game = Game {
-            size,
             opl_name,
             crc_name,
-            serial,
-            num_chunks: 0,
+            size: chunk.get_size()?,
+            serial: chunk.get_serial()?,
+            num_chunks: chunk.count()?,
         };
 
         Ok(game)
@@ -35,16 +38,17 @@ impl Game {
 
     pub fn from_config(chunkpath: &Path, opl_name: String) -> Result<Self> {
         let crc_name = crc::get_game_name_crc(&opl_name);
-        let size = iso::get_size_from_chunks(chunkpath, &crc_name)?;
-        let serial = iso::get_serial_from_chunks(chunkpath, &crc_name)?;
-        let num_chunks = iso::count_chunks(chunkpath, &crc_name)?;
+        let chunks = iso::GameChunk {
+            path: PathBuf::from(chunkpath),
+            crc_name: String::from(&crc_name),
+        };
 
         let game = Game {
-            size,
             opl_name,
             crc_name,
-            serial,
-            num_chunks,
+            size: chunks.get_size()?,
+            serial: chunks.get_serial()?,
+            num_chunks: chunks.count()?,
         };
 
         Ok(game)

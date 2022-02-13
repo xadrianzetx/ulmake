@@ -25,7 +25,8 @@ fn add_game(isopath: &Path, dstpath: &Path, name: String) -> Result<()> {
         false => Ulcfg::new(),
     };
 
-    println!("Creating {} from {:?}", name, isopath.file_name().unwrap());
+    let isoname = isopath.file_name().unwrap().to_str().unwrap();
+    println!("Creating {} from {}", name, isoname);
     ulcfg.add_game(isopath, dstpath, name)?;
     ulcfg.save(&ulpath)?;
 
