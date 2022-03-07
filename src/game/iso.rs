@@ -98,3 +98,46 @@ fn list_game_chunks(path: &Path, crc_name: &str) -> Result<Vec<String>> {
 
     Ok(chunks)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    #[test]
+    fn test_isochunk_get_serial() {
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push("resources/testimage.iso");
+        let isochunk = ISOChunk { path };
+        let serial = isochunk.get_serial().unwrap();
+        assert_eq!(serial, String::from("SLXS_123.45"));
+    }
+
+    #[test]
+    fn test_isochunk_get_serial_file_not_found() {
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push("resources/foo.iso");
+        let isochunk = ISOChunk { path };
+        let expected = isochunk.get_serial().is_err();
+        assert!(expected);
+    }
+
+    #[test]
+    fn test_isochunk_get_size() {
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push("resources/testimage.iso");
+        let isochunk = ISOChunk { path };
+        let size = isochunk.get_size().unwrap();
+        let expected_size = 358400;
+        assert_eq!(size, expected_size);
+    }
+
+    #[test]
+    fn test_isochunk_get_size_file_not_found() {
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push("resources/foo.iso");
+        let isochunk = ISOChunk { path };
+        let expected = isochunk.get_size().is_err();
+        assert!(expected);
+    }
+}
