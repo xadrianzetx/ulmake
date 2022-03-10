@@ -19,3 +19,23 @@ pub fn compose_from_str(string: &str, size: usize) -> Vec<u8> {
 
     buff
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_to_string() {
+        let buffer = vec![0x66, 0x6f, 0x6f, 0x00, 0x00];
+        let parsed = parse_to_string(&buffer, 0, 5);
+        assert_eq!(parsed, String::from("foo"));
+    }
+
+    #[test]
+    fn test_compose_from_string() {
+        let bytes = compose_from_str("foo", 5);
+        let expected = vec![0x66, 0x6f, 0x6f, 0x00, 0x00];
+        let matching = expected.iter().zip(bytes.iter()).all(|(x, y)| x == y);
+        assert!(matching);
+    }
+}
