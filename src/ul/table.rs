@@ -31,3 +31,23 @@ pub fn make_row(cols: &[&str], col_sizes: &[usize]) -> String {
 
     String::from_utf8(buff).unwrap()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_make_row() {
+        let cols = ["foo", "bar", "baz"];
+        let sizes = [3, 4, 5];
+        let row = make_row(&cols, &sizes);
+        assert_eq!(row, String::from("| foo | bar  | baz   |"));
+    }
+
+    #[test]
+    fn test_make_hline() {
+        let sizes = [3, 4, 5];
+        let hline = make_hline(&sizes);
+        assert_eq!(hline, String::from("+-----+------+-------+"));
+    }
+}
