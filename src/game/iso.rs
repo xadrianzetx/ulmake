@@ -15,13 +15,24 @@ pub struct ISOChunk {
 
 pub struct GameChunk {
     pub path: PathBuf,
-    pub crc_name: String,
 }
 
 pub trait Chunk {
     fn get_serial(&self) -> Result<String>;
     fn get_size(&self) -> Result<u64>;
     fn count(&self) -> Result<u8>;
+}
+
+impl From<PathBuf> for ISOChunk {
+    fn from(path: PathBuf) -> Self {
+        ISOChunk { path }
+    }
+}
+
+impl From<PathBuf> for GameChunk {
+    fn from(path: PathBuf) -> Self {
+        GameChunk { path }
+    }
 }
 
 impl Chunk for ISOChunk {
