@@ -20,7 +20,6 @@ pub struct GameChunk {
 pub trait Chunk {
     fn get_serial(&self) -> Result<String>;
     fn get_size(&self) -> Result<u64>;
-    fn count(&self) -> Result<u8>;
 }
 
 impl From<PathBuf> for ISOChunk {
@@ -66,10 +65,6 @@ impl Chunk for ISOChunk {
         let metadata = fs::metadata(&self.path)?;
         Ok(metadata.len())
     }
-
-    fn count(&self) -> Result<u8> {
-        Ok(0)
-    }
 }
 
 impl Chunk for GameChunk {
@@ -89,11 +84,6 @@ impl Chunk for GameChunk {
             .sum();
 
         Ok(total_size)
-    }
-
-    fn count(&self) -> Result<u8> {
-        let chunks = list_game_chunks(&self.path, &self.crc_name)?;
-        Ok(chunks.len() as u8)
     }
 }
 
