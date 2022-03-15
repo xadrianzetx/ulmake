@@ -69,21 +69,27 @@ impl Chunk for ISOChunk {
 
 impl Chunk for GameChunk {
     fn serial(&self) -> Result<String> {
-        let chunks = list_game_chunks(&self.path, &self.crc_name)?;
-        let serial = chunks.get(0).unwrap().split('.').collect::<Vec<&str>>();
-        Ok(format!("{}.{}", serial[2], serial[3]))
+        fs::metadata(&self.path)?;
+        let segments = self
+            .path
+            .file_name()
+            .and_then(|c| c.to_str())
+            .ok_or(ErrorKind::InvalidData)?
+            .split('.')
+            .collect::<Vec<&str>>();
+
+        if segments.len() != 5 {
+            // Chunk names have five comma separated segments (including extension).
+            // Example: ul.84BA9D95.SLXS_123.45.00
+            return Err(Error::from(ErrorKind::InvalidData));
+        }
+
+        Ok(format!("{}.{}", segments[2], segments[3]))
     }
 
     fn size(&self) -> Result<u64> {
-        let chunks = list_game_chunks(&self.path, &self.crc_name)?;
-        let total_size = chunks
-            .into_iter()
-            .map(|e| fs::metadata(Path::new(&self.path).join(e)).unwrap().len())
-            .collect::<Vec<u64>>()
-            .iter()
-            .sum();
-
-        Ok(total_size)
+        let metadata = fs::metadata(&self.path)?;
+        Ok(metadata.len())
     }
 }
 
