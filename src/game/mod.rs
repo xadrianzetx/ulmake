@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 const CHUNK_SIZE: u64 = 1_073_741_824;
 
 pub struct Game {
-    opl_name: String,
+    pub opl_name: String,
     crc_name: String,
     size: u64,
     serial: String,
