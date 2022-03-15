@@ -3,9 +3,10 @@ mod iso;
 
 use crate::game::iso::Chunk;
 
-use std::fs::{metadata, remove_file, File};
+use std::fs::{metadata, read_dir, remove_file, File};
 use std::io::prelude::*;
 use std::io::{copy, stdout, Result, SeekFrom};
+use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
 
 const CHUNK_SIZE: u64 = 1_073_741_824;
@@ -116,5 +117,39 @@ impl Game {
     pub fn formatted_size(&self) -> String {
         let size_gb = self.size as f64 / 1_000_000_000.0;
         format!("{:.2}GB", size_gb)
+    }
+}
+
+fn list_game_chunks(path: &Path, crc_name: &str) -> Result<Vec<String>> {
+    let chunks = read_dir(path)?
+        .map(|res| res.unwrap().file_name().into_string().unwrap())
+        .filter(|n| n.contains(crc_name))
+        .collect::<Vec<_>>();
+
+    if chunks.is_empty() {
+        return Err(Error::from(ErrorKind::NotFound));
+    }
+
+    Ok(chunks)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_list_game_chunks() {
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push("resources");
+        let chunks = list_game_chunks(&path, "84BA9D95").unwrap();
+        assert_eq!(chunks.len(), 2);
+    }
+
+    #[test]
+    fn test_list_game_chunks_file_not_found() {
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push("resources");
+        let chunks = list_game_chunks(&path, "00000000");
+        assert!(chunks.is_err());
     }
 }

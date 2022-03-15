@@ -2,7 +2,7 @@ use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{Error, ErrorKind, Result};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use iso9660::{DirectoryEntry, ISO9660};
 use regex::Regex;
@@ -93,19 +93,6 @@ impl Chunk for GameChunk {
     }
 }
 
-fn list_game_chunks(path: &Path, crc_name: &str) -> Result<Vec<String>> {
-    let chunks = fs::read_dir(path)?
-        .map(|res| res.unwrap().file_name().into_string().unwrap())
-        .filter(|n| n.contains(crc_name))
-        .collect::<Vec<_>>();
-
-    if chunks.is_empty() {
-        return Err(Error::from(ErrorKind::NotFound));
-    }
-
-    Ok(chunks)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -183,21 +170,5 @@ mod tests {
         let gamechunk = GameChunk::from(path);
         let size = gamechunk.size();
         assert!(size.is_err());
-    }
-
-    #[test]
-    fn test_list_game_chunks() {
-        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path.push("resources");
-        let chunks = list_game_chunks(&path, "84BA9D95").unwrap();
-        assert_eq!(chunks.len(), 2);
-    }
-
-    #[test]
-    fn test_list_game_chunks_file_not_found() {
-        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path.push("resources");
-        let chunks = list_game_chunks(&path, "00000000");
-        assert!(chunks.is_err());
     }
 }
