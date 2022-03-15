@@ -2,7 +2,7 @@ use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{Error, ErrorKind, Result};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use iso9660::{DirectoryEntry, ISO9660};
 use regex::Regex;
@@ -10,16 +10,17 @@ use regex::Regex;
 const SYSTEM_CNF_PATH: &str = "/SYSTEM.CNF";
 
 pub struct ISOChunk {
-    pub path: PathBuf,
+    path: PathBuf,
 }
 
 pub struct GameChunk {
-    pub path: PathBuf,
+    path: PathBuf,
 }
 
 pub trait Chunk {
     fn serial(&self) -> Result<String>;
     fn size(&self) -> Result<u64>;
+    fn path(&self) -> &Path;
 }
 
 impl From<PathBuf> for ISOChunk {
@@ -65,6 +66,10 @@ impl Chunk for ISOChunk {
         let metadata = fs::metadata(&self.path)?;
         Ok(metadata.len())
     }
+
+    fn path(&self) -> &Path {
+        self.path.as_path()
+    }
 }
 
 impl Chunk for GameChunk {
@@ -90,6 +95,10 @@ impl Chunk for GameChunk {
     fn size(&self) -> Result<u64> {
         let metadata = fs::metadata(&self.path)?;
         Ok(metadata.len())
+    }
+
+    fn path(&self) -> &Path {
+        self.path.as_path()
     }
 }
 
