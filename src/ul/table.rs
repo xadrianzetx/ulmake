@@ -10,7 +10,7 @@ pub fn make_hline(col_sizes: &[usize]) -> String {
     String::from_utf8(buff).unwrap()
 }
 
-pub fn make_row(cols: &[&str], col_sizes: &[usize]) -> String {
+pub fn make_row(cols: Vec<String>, col_sizes: &[usize]) -> String {
     // opening vline
     let mut buff = vec![0x7c];
 
@@ -21,7 +21,7 @@ pub fn make_row(cols: &[&str], col_sizes: &[usize]) -> String {
         let padding_size = size - col.len();
         let padding = vec![0x20; padding_size];
 
-        buff.extend_from_slice(&String::from(*col).into_bytes());
+        buff.extend_from_slice(&col.clone().into_bytes());
         buff.extend_from_slice(&padding);
 
         // one byte of right padding (whitespace) and closing vline
@@ -38,10 +38,10 @@ mod tests {
 
     #[test]
     fn test_make_row() {
-        let cols = ["foo", "bar", "baz"];
-        let sizes = [3, 4, 5];
-        let row = make_row(&cols, &sizes);
-        assert_eq!(row, String::from("| foo | bar  | baz   |"));
+        let cols = vec![String::from("foo"), String::from("bar")];
+        let sizes = [3, 4];
+        let row = make_row(cols, &sizes);
+        assert_eq!(row, String::from("| foo | bar  |"));
     }
 
     #[test]
