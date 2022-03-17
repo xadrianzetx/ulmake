@@ -1,37 +1,32 @@
 mod crc;
 mod iso;
 
-use crate::game::iso::Chunk;
+use crate::game::iso::{Chunk, GameChunk, ISOChunk};
 
 use std::fs::{metadata, read_dir, remove_file, File};
 use std::io::prelude::*;
 use std::io::{copy, stdout, Result, SeekFrom};
 use std::io::{Error, ErrorKind};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 const CHUNK_SIZE: u64 = 1_073_741_824;
 
 pub struct Game {
     pub opl_name: String,
     crc_name: String,
-    size: u64,
-    serial: String,
-    num_chunks: u8,
+    chunks: Vec<Box<dyn Chunk>>,
 }
 
 impl Game {
     pub fn from_iso(isopath: &Path, opl_name: String) -> Result<Self> {
         let crc_name = crc::get_game_name_crc(&opl_name);
-        let chunk = iso::ISOChunk {
-            path: PathBuf::from(isopath),
-        };
+        let chunk = ISOChunk::from(isopath.to_path_buf());
+        let chunks: Vec<Box<dyn Chunk>> = vec![Box::new(chunk)];
 
         let game = Game {
             opl_name,
             crc_name,
-            size: chunk.get_size()?,
-            serial: chunk.get_serial()?,
-            num_chunks: chunk.count()?,
+            chunks,
         };
 
         Ok(game)
@@ -39,17 +34,18 @@ impl Game {
 
     pub fn from_config(chunkpath: &Path, opl_name: String) -> Result<Self> {
         let crc_name = crc::get_game_name_crc(&opl_name);
-        let chunks = iso::GameChunk {
-            path: PathBuf::from(chunkpath),
-            crc_name: String::from(&crc_name),
-        };
+        let chunks = list_game_chunks(chunkpath, &crc_name)?
+            .iter()
+            .map(|c| {
+                let p = chunkpath.to_path_buf().join(c);
+                Box::new(GameChunk::from(p)) as Box<dyn Chunk>
+            })
+            .collect::<Vec<Box<dyn Chunk>>>();
 
         let game = Game {
             opl_name,
             crc_name,
-            size: chunks.get_size()?,
-            serial: chunks.get_serial()?,
-            num_chunks: chunks.count()?,
+            chunks,
         };
 
         Ok(game)
