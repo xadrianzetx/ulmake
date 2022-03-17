@@ -132,6 +132,7 @@ fn list_game_chunks(path: &Path, crc_name: &str) -> Result<Vec<String>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::PathBuf;
 
     #[test]
     fn test_list_game_chunks() {
