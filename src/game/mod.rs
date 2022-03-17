@@ -107,7 +107,7 @@ impl Game {
     }
 
     pub fn num_chunks(&self) -> u8 {
-        self.num_chunks
+        self.chunks.len() as u8
     }
 
     pub fn formatted_size(&self) -> String {
