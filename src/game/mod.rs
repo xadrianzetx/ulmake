@@ -34,6 +34,11 @@ impl Game {
 
     pub fn from_config(chunkpath: &Path, opl_name: String) -> Result<Self> {
         let crc_name = crc::get_game_name_crc(&opl_name);
+
+        // FIXME Kinda stupid behavior to just fail when game chunks are missing.
+        // We probably should create game with no chunks and indicate in list_games
+        // that this config entry is errorous. delete_game should allow to remove
+        // just the config entry in such case.
         let chunks = list_game_chunks(chunkpath, &crc_name)?
             .iter()
             .map(|c| {
