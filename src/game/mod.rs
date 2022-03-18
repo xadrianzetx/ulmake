@@ -81,17 +81,13 @@ impl Game {
         Ok(())
     }
 
-    pub fn delete_chunks(&self, ulpath: &Path) -> Result<()> {
+    pub fn delete_chunks(&self) -> Result<()> {
         println!("Deleting {}", &self.opl_name);
 
-        for chunk in 0..self.num_chunks {
-            print!("Deleting chunk {} of {}...", chunk + 1, self.num_chunks);
+        for (num, chunk) in self.chunks.iter().enumerate() {
+            print!("Deleting chunk {} of {}...", num + 1, self.chunks.len());
             stdout().flush().unwrap();
-
-            let chunkname = format!("ul.{}.{}.0{}", &self.crc_name, &self.serial, chunk);
-            let chunkpath = ulpath.join(Path::new(&chunkname));
-
-            remove_file(chunkpath)?;
+            remove_file(chunk.path())?;
             println!("Done");
         }
 
