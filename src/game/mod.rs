@@ -98,12 +98,12 @@ impl Game {
         Ok(())
     }
 
-    pub fn serial(&self) -> &str {
-        self.serial.as_str()
-    }
-
-    pub fn opl_name(&self) -> &str {
-        self.opl_name.as_str()
+    pub fn serial(&self) -> String {
+        self.chunks
+            .get(0)
+            .and_then(|e| e.serial().ok())
+            .ok_or(ErrorKind::InvalidData)
+            .unwrap_or_else(|_| String::from("NOT FOUND"))
     }
 
     pub fn num_chunks(&self) -> u8 {
@@ -111,7 +111,15 @@ impl Game {
     }
 
     pub fn formatted_size(&self) -> String {
-        let size_gb = self.size as f64 / 1_000_000_000.0;
+        let total_size: u64 = self
+            .chunks
+            .iter()
+            .map(|c| c.size().unwrap_or(0))
+            .collect::<Vec<u64>>()
+            .iter()
+            .sum();
+
+        let size_gb = total_size as f64 / 1_000_000_000.0;
         format!("{:.2}GB", size_gb)
     }
 }
