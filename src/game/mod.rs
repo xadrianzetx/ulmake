@@ -101,7 +101,7 @@ impl Game {
     pub fn serial(&self) -> String {
         self.chunks
             .get(0)
-            .and_then(|e| e.serial().ok())
+            .and_then(|c| c.serial().ok())
             .ok_or(ErrorKind::InvalidData)
             .unwrap_or_else(|_| String::from("NOT FOUND"))
     }
