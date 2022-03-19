@@ -3,7 +3,7 @@ mod iso;
 
 use crate::game::iso::{Chunk, GameChunk, ISOChunk};
 
-use std::fs::{metadata, read_dir, remove_file, File};
+use std::fs::{read_dir, remove_file, File};
 use std::io::prelude::*;
 use std::io::{copy, stdout, Result, SeekFrom};
 use std::io::{Error, ErrorKind};
@@ -56,33 +56,39 @@ impl Game {
         Ok(game)
     }
 
-    pub fn create_chunks(&mut self, isopath: &Path, dstpath: &Path) -> Result<()> {
-        let meta = metadata(isopath)?;
-        let mut file = File::open(isopath)?;
+    pub fn create_chunks(&mut self, dstpath: &Path) -> Result<()> {
+        let image = self.chunks.pop().ok_or(ErrorKind::NotFound)?;
+        let mut file = File::open(image.path())?;
 
-        let n_chunksf = meta.len() as f64 / CHUNK_SIZE as f64;
-        let n_chunks = n_chunksf.ceil() as u8;
+        if !self.chunks.is_empty() {
+            // Any elements left would mean we are splitting already split image.
+            return Err(Error::from(ErrorKind::InvalidInput));
+        }
+
+        // TODO Simplify when https://github.com/rust-lang/rust/issues/88581 closes.
+        let n_chunks = file.metadata().unwrap().len() as f64 / CHUNK_SIZE as f64;
+        let n_chunks = n_chunks.ceil() as usize;
         let mut offset: u64 = 0;
 
         for chunk in 0..n_chunks {
             print!("Creating chunk {} of {}...", chunk + 1, n_chunks);
             stdout().flush().unwrap();
 
-            // even largest ps2 game should not be over 9 chunks
-            let chunkname = format!("ul.{}.{}.0{}", &self.crc_name, &self.serial, chunk);
-            let chunkpath = dstpath.join(Path::new(&chunkname));
-            let mut dst = File::create(chunkpath)?;
+            // Even largest PS2 game should not be over 9 chunks.
+            let chunkname = format!("ul.{}.{}.0{}", &self.crc_name, &image.serial()?, chunk);
+            let chunkpath = dstpath.join(&chunkname);
+            let mut dst = File::create(&chunkpath)?;
 
             file.seek(SeekFrom::Start(offset))?;
             let mut src = file.take(CHUNK_SIZE);
             copy(&mut src, &mut dst)?;
             file = src.into_inner();
 
+            self.chunks.push(Box::new(GameChunk::from(chunkpath)));
             offset += CHUNK_SIZE;
             println!("Done.");
         }
 
-        self.num_chunks = n_chunks;
         Ok(())
     }
 

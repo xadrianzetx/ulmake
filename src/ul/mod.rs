@@ -101,7 +101,8 @@ impl Ulcfg {
 
     pub fn add_game(&mut self, isopath: &Path, dstpath: &Path, opl_name: String) -> Result<()> {
         let mut game = Game::from_iso(isopath, opl_name)?;
-        game.create_chunks(isopath, dstpath)?;
+        // TODO Cleanup if create_chunks failed?
+        game.create_chunks(dstpath)?;
         self.game_list.push(game);
 
         Ok(())
