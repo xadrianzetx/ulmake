@@ -59,6 +59,7 @@ impl Game {
     pub fn create_chunks(&mut self, dstpath: &Path) -> Result<()> {
         let image = self.chunks.pop().ok_or(ErrorKind::NotFound)?;
         let mut file = File::open(image.path())?;
+        let mut offset: u64 = 0;
 
         if !self.chunks.is_empty() {
             // Any elements left would mean we are splitting already split image.
@@ -66,9 +67,10 @@ impl Game {
         }
 
         // TODO Simplify when https://github.com/rust-lang/rust/issues/88581 closes.
-        let n_chunks = file.metadata().unwrap().len() as f64 / CHUNK_SIZE as f64;
-        let n_chunks = n_chunks.ceil() as usize;
-        let mut offset: u64 = 0;
+        let mut n_chunks = file.metadata().unwrap().len() / CHUNK_SIZE;
+        if file.metadata().unwrap().len() % CHUNK_SIZE > 0 {
+            n_chunks += 1;
+        }
 
         for chunk in 0..n_chunks {
             print!("Creating chunk {} of {}...", chunk + 1, n_chunks);
