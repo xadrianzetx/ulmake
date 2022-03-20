@@ -10,22 +10,33 @@ use regex::Regex;
 const SYSTEM_CNF_PATH: &str = "/SYSTEM.CNF";
 
 pub struct ISOChunk {
-    pub path: PathBuf,
+    path: PathBuf,
 }
 
 pub struct GameChunk {
-    pub path: PathBuf,
-    pub crc_name: String,
+    path: PathBuf,
 }
 
 pub trait Chunk {
-    fn get_serial(&self) -> Result<String>;
-    fn get_size(&self) -> Result<u64>;
-    fn count(&self) -> Result<u8>;
+    fn serial(&self) -> Result<String>;
+    fn size(&self) -> Result<u64>;
+    fn path(&self) -> &Path;
+}
+
+impl From<PathBuf> for ISOChunk {
+    fn from(path: PathBuf) -> Self {
+        ISOChunk { path }
+    }
+}
+
+impl From<PathBuf> for GameChunk {
+    fn from(path: PathBuf) -> Self {
+        GameChunk { path }
+    }
 }
 
 impl Chunk for ISOChunk {
-    fn get_serial(&self) -> Result<String> {
+    fn serial(&self) -> Result<String> {
         let isofile = File::open(&self.path)?;
         let iso = match ISO9660::new(isofile) {
             Ok(image) => image,
@@ -51,52 +62,44 @@ impl Chunk for ISOChunk {
         }
     }
 
-    fn get_size(&self) -> Result<u64> {
+    fn size(&self) -> Result<u64> {
         let metadata = fs::metadata(&self.path)?;
         Ok(metadata.len())
     }
 
-    fn count(&self) -> Result<u8> {
-        Ok(0)
+    fn path(&self) -> &Path {
+        self.path.as_path()
     }
 }
 
 impl Chunk for GameChunk {
-    fn get_serial(&self) -> Result<String> {
-        let chunks = list_game_chunks(&self.path, &self.crc_name)?;
-        let serial = chunks.get(0).unwrap().split('.').collect::<Vec<&str>>();
-        Ok(format!("{}.{}", serial[2], serial[3]))
+    fn serial(&self) -> Result<String> {
+        fs::metadata(&self.path)?;
+        let segments = self
+            .path
+            .file_name()
+            .and_then(|c| c.to_str())
+            .ok_or(ErrorKind::InvalidData)?
+            .split('.')
+            .collect::<Vec<&str>>();
+
+        if segments.len() != 5 {
+            // Chunk names have five comma separated segments (including extension).
+            // Example: ul.84BA9D95.SLXS_123.45.00
+            return Err(Error::from(ErrorKind::InvalidData));
+        }
+
+        Ok(format!("{}.{}", segments[2], segments[3]))
     }
 
-    fn get_size(&self) -> Result<u64> {
-        let chunks = list_game_chunks(&self.path, &self.crc_name)?;
-        let total_size = chunks
-            .into_iter()
-            .map(|e| fs::metadata(Path::new(&self.path).join(e)).unwrap().len())
-            .collect::<Vec<u64>>()
-            .iter()
-            .sum();
-
-        Ok(total_size)
+    fn size(&self) -> Result<u64> {
+        let metadata = fs::metadata(&self.path)?;
+        Ok(metadata.len())
     }
 
-    fn count(&self) -> Result<u8> {
-        let chunks = list_game_chunks(&self.path, &self.crc_name)?;
-        Ok(chunks.len() as u8)
+    fn path(&self) -> &Path {
+        self.path.as_path()
     }
-}
-
-fn list_game_chunks(path: &Path, crc_name: &str) -> Result<Vec<String>> {
-    let chunks = fs::read_dir(path)?
-        .map(|res| res.unwrap().file_name().into_string().unwrap())
-        .filter(|n| n.contains(crc_name))
-        .collect::<Vec<_>>();
-
-    if chunks.is_empty() {
-        return Err(Error::from(ErrorKind::NotFound));
-    }
-
-    Ok(chunks)
 }
 
 #[cfg(test)]
@@ -108,8 +111,8 @@ mod tests {
     fn test_isochunk_get_serial() {
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         path.push("resources/testimage.iso");
-        let isochunk = ISOChunk { path };
-        let serial = isochunk.get_serial().unwrap();
+        let isochunk = ISOChunk::from(path);
+        let serial = isochunk.serial().unwrap();
         assert_eq!(serial, String::from("SLXS_123.45"));
     }
 
@@ -117,8 +120,8 @@ mod tests {
     fn test_isochunk_get_serial_file_not_found() {
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         path.push("resources/foo.iso");
-        let isochunk = ISOChunk { path };
-        let serial = isochunk.get_serial();
+        let isochunk = ISOChunk::from(path);
+        let serial = isochunk.serial();
         assert!(serial.is_err());
     }
 
@@ -126,8 +129,8 @@ mod tests {
     fn test_isochunk_get_size() {
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         path.push("resources/testimage.iso");
-        let isochunk = ISOChunk { path };
-        let size = isochunk.get_size().unwrap();
+        let isochunk = ISOChunk::from(path);
+        let size = isochunk.size().unwrap();
         let expected_size = 358400;
         assert_eq!(size, expected_size);
     }
@@ -136,65 +139,45 @@ mod tests {
     fn test_isochunk_get_size_file_not_found() {
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         path.push("resources/foo.iso");
-        let isochunk = ISOChunk { path };
-        let size = isochunk.get_size();
+        let isochunk = ISOChunk::from(path);
+        let size = isochunk.size();
         assert!(size.is_err());
     }
 
     #[test]
     fn test_gamechunk_get_serial() {
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path.push("resources");
-        let crc_name = String::from("84BA9D95");
-        let gamechunk = GameChunk { path, crc_name };
-        let serial = gamechunk.get_serial().unwrap();
+        path.push("resources/ul.84BA9D95.SLXS_123.45.00");
+        let gamechunk = GameChunk::from(path);
+        let serial = gamechunk.serial().unwrap();
         assert_eq!(serial, String::from("SLXS_123.45"))
     }
 
     #[test]
     fn test_gamechunk_get_serial_file_not_found() {
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path.push("resources");
-        let crc_name = String::from("00000000");
-        let gamechunk = GameChunk { path, crc_name };
-        let serial = gamechunk.get_serial();
+        path.push("resources/ul.00000000.SLXS_123.45.00");
+        let gamechunk = GameChunk::from(path);
+        let serial = gamechunk.serial();
         assert!(serial.is_err());
     }
 
     #[test]
     fn test_gamechunk_get_size() {
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path.push("resources");
-        let crc_name = String::from("84BA9D95");
-        let gamechunk = GameChunk { path, crc_name };
-        let size = gamechunk.get_size().unwrap();
-        let expected_size = 20;
+        path.push("resources/ul.84BA9D95.SLXS_123.45.00");
+        let gamechunk = GameChunk::from(path);
+        let size = gamechunk.size().unwrap();
+        let expected_size = 10;
         assert_eq!(size, expected_size);
     }
 
     #[test]
     fn test_gamechunk_get_size_file_not_found() {
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path.push("resources");
-        let crc_name = String::from("00000000");
-        let gamechunk = GameChunk { path, crc_name };
-        let size = gamechunk.get_size();
+        path.push("resources/ul.00000000.SLXS_123.45.00");
+        let gamechunk = GameChunk::from(path);
+        let size = gamechunk.size();
         assert!(size.is_err());
-    }
-
-    #[test]
-    fn test_list_game_chunks() {
-        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path.push("resources");
-        let chunks = list_game_chunks(&path, "84BA9D95").unwrap();
-        assert_eq!(chunks.len(), 2);
-    }
-
-    #[test]
-    fn test_list_game_chunks_file_not_found() {
-        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path.push("resources");
-        let chunks = list_game_chunks(&path, "00000000");
-        assert!(chunks.is_err());
     }
 }

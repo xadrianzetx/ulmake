@@ -1,36 +1,32 @@
 mod crc;
 mod iso;
 
-use crate::game::iso::Chunk;
+use crate::game::iso::{Chunk, GameChunk, ISOChunk};
 
-use std::fs::{metadata, remove_file, File};
+use std::fs::{read_dir, remove_file, File};
 use std::io::prelude::*;
 use std::io::{copy, stdout, Result, SeekFrom};
-use std::path::{Path, PathBuf};
+use std::io::{Error, ErrorKind};
+use std::path::Path;
 
 const CHUNK_SIZE: u64 = 1_073_741_824;
 
 pub struct Game {
-    opl_name: String,
+    pub opl_name: String,
     crc_name: String,
-    size: u64,
-    serial: String,
-    num_chunks: u8,
+    chunks: Vec<Box<dyn Chunk>>,
 }
 
 impl Game {
     pub fn from_iso(isopath: &Path, opl_name: String) -> Result<Self> {
         let crc_name = crc::get_game_name_crc(&opl_name);
-        let chunk = iso::ISOChunk {
-            path: PathBuf::from(isopath),
-        };
+        let chunk = ISOChunk::from(isopath.to_path_buf());
+        let chunks: Vec<Box<dyn Chunk>> = vec![Box::new(chunk)];
 
         let game = Game {
             opl_name,
             crc_name,
-            size: chunk.get_size()?,
-            serial: chunk.get_serial()?,
-            num_chunks: chunk.count()?,
+            chunks,
         };
 
         Ok(game)
@@ -38,83 +34,136 @@ impl Game {
 
     pub fn from_config(chunkpath: &Path, opl_name: String) -> Result<Self> {
         let crc_name = crc::get_game_name_crc(&opl_name);
-        let chunks = iso::GameChunk {
-            path: PathBuf::from(chunkpath),
-            crc_name: String::from(&crc_name),
-        };
+
+        // FIXME Kinda stupid behavior to just fail when game chunks are missing.
+        // We probably should create game with no chunks and indicate in list_games
+        // that this config entry is errorous. delete_game should allow to remove
+        // just the config entry in such case.
+        let chunks = list_game_chunks(chunkpath, &crc_name)?
+            .iter()
+            .map(|c| {
+                let p = chunkpath.to_path_buf().join(c);
+                Box::new(GameChunk::from(p)) as Box<dyn Chunk>
+            })
+            .collect::<Vec<Box<dyn Chunk>>>();
 
         let game = Game {
             opl_name,
             crc_name,
-            size: chunks.get_size()?,
-            serial: chunks.get_serial()?,
-            num_chunks: chunks.count()?,
+            chunks,
         };
 
         Ok(game)
     }
 
-    pub fn create_chunks(&mut self, isopath: &Path, dstpath: &Path) -> Result<()> {
-        let meta = metadata(isopath)?;
-        let mut file = File::open(isopath)?;
-
-        let n_chunksf = meta.len() as f64 / CHUNK_SIZE as f64;
-        let n_chunks = n_chunksf.ceil() as u8;
+    pub fn create_chunks(&mut self, dstpath: &Path) -> Result<()> {
+        let image = self.chunks.pop().ok_or(ErrorKind::NotFound)?;
+        let mut file = File::open(image.path())?;
         let mut offset: u64 = 0;
+
+        if !self.chunks.is_empty() {
+            // Any elements left would mean we are splitting already split image.
+            return Err(Error::from(ErrorKind::InvalidInput));
+        }
+
+        // TODO Simplify when https://github.com/rust-lang/rust/issues/88581 closes.
+        let mut n_chunks = file.metadata().unwrap().len() / CHUNK_SIZE;
+        if file.metadata().unwrap().len() % CHUNK_SIZE > 0 {
+            n_chunks += 1;
+        }
 
         for chunk in 0..n_chunks {
             print!("Creating chunk {} of {}...", chunk + 1, n_chunks);
             stdout().flush().unwrap();
 
-            // even largest ps2 game should not be over 9 chunks
-            let chunkname = format!("ul.{}.{}.0{}", &self.crc_name, &self.serial, chunk);
-            let chunkpath = dstpath.join(Path::new(&chunkname));
-            let mut dst = File::create(chunkpath)?;
+            // Even largest PS2 game should not be over 9 chunks.
+            let chunkname = format!("ul.{}.{}.0{}", &self.crc_name, &image.serial()?, chunk);
+            let chunkpath = dstpath.join(&chunkname);
+            let mut dst = File::create(&chunkpath)?;
 
             file.seek(SeekFrom::Start(offset))?;
             let mut src = file.take(CHUNK_SIZE);
             copy(&mut src, &mut dst)?;
             file = src.into_inner();
 
+            self.chunks.push(Box::new(GameChunk::from(chunkpath)));
             offset += CHUNK_SIZE;
             println!("Done.");
         }
 
-        self.num_chunks = n_chunks;
         Ok(())
     }
 
-    pub fn delete_chunks(&self, ulpath: &Path) -> Result<()> {
+    pub fn delete_chunks(&self) -> Result<()> {
         println!("Deleting {}", &self.opl_name);
 
-        for chunk in 0..self.num_chunks {
-            print!("Deleting chunk {} of {}...", chunk + 1, self.num_chunks);
+        for (num, chunk) in self.chunks.iter().enumerate() {
+            print!("Deleting chunk {} of {}...", num + 1, self.chunks.len());
             stdout().flush().unwrap();
-
-            let chunkname = format!("ul.{}.{}.0{}", &self.crc_name, &self.serial, chunk);
-            let chunkpath = ulpath.join(Path::new(&chunkname));
-
-            remove_file(chunkpath)?;
+            remove_file(chunk.path())?;
             println!("Done");
         }
 
         Ok(())
     }
 
-    pub fn serial(&self) -> &str {
-        self.serial.as_str()
-    }
-
-    pub fn opl_name(&self) -> &str {
-        self.opl_name.as_str()
+    pub fn serial(&self) -> String {
+        self.chunks
+            .get(0)
+            .and_then(|c| c.serial().ok())
+            .ok_or(ErrorKind::InvalidData)
+            .unwrap_or_else(|_| String::from("NOT FOUND"))
     }
 
     pub fn num_chunks(&self) -> u8 {
-        self.num_chunks
+        self.chunks.len() as u8
     }
 
     pub fn formatted_size(&self) -> String {
-        let size_gb = self.size as f64 / 1_000_000_000.0;
+        let total_size: u64 = self
+            .chunks
+            .iter()
+            .map(|c| c.size().unwrap_or(0))
+            .collect::<Vec<u64>>()
+            .iter()
+            .sum();
+
+        let size_gb = total_size as f64 / 1_000_000_000.0;
         format!("{:.2}GB", size_gb)
+    }
+}
+
+fn list_game_chunks(path: &Path, crc_name: &str) -> Result<Vec<String>> {
+    let chunks = read_dir(path)?
+        .map(|res| res.unwrap().file_name().into_string().unwrap())
+        .filter(|n| n.contains(crc_name))
+        .collect::<Vec<_>>();
+
+    if chunks.is_empty() {
+        return Err(Error::from(ErrorKind::NotFound));
+    }
+
+    Ok(chunks)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    #[test]
+    fn test_list_game_chunks() {
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push("resources");
+        let chunks = list_game_chunks(&path, "84BA9D95").unwrap();
+        assert_eq!(chunks.len(), 2);
+    }
+
+    #[test]
+    fn test_list_game_chunks_file_not_found() {
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push("resources");
+        let chunks = list_game_chunks(&path, "00000000");
+        assert!(chunks.is_err());
     }
 }

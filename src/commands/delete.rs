@@ -8,7 +8,7 @@ use clap::ArgMatches;
 fn delete_game_by_name(path: &Path, name: String) -> Result<()> {
     let ulpath = path.join(Path::new("ul.cfg"));
     let mut ulcfg = Ulcfg::load(&ulpath)?;
-    ulcfg.delete_game_by_name(name, path)?;
+    ulcfg.delete_game_by_name(name)?;
     ulcfg.save(&ulpath)?;
 
     Ok(())
@@ -17,7 +17,7 @@ fn delete_game_by_name(path: &Path, name: String) -> Result<()> {
 fn delete_game_by_index(path: &Path, index: usize) -> Result<()> {
     let ulpath = path.join(Path::new("ul.cfg"));
     let mut ulcfg = Ulcfg::load(&ulpath)?;
-    ulcfg.delete_game_by_index(index, path)?;
+    ulcfg.delete_game_by_index(index)?;
     ulcfg.save(&ulpath)?;
 
     Ok(())
