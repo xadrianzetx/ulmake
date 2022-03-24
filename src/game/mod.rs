@@ -158,4 +158,23 @@ mod tests {
         let chunks = list_game_chunks(&path, "00000000");
         assert!(chunks.is_err());
     }
+
+    #[test]
+    fn test_create_chunks_no_iso() {
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push("resources/foobarbaz.iso");
+        let dst = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let mut game = Game::from_iso(&path, String::from("foobarbaz"));
+        assert_eq!(game.num_chunks(), 1);
+        assert!(game.create_chunks(&dst).is_err());
+    }
+
+    #[test]
+    fn test_delete_chunks_no_chunks() {
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push("resources");
+        let game = Game::from_config(&path, String::from("foobarbaz"));
+        assert_eq!(game.num_chunks(), 0);
+        assert!(game.delete_chunks().is_ok());
+    }
 }
