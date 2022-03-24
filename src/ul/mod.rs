@@ -39,7 +39,7 @@ impl Ulcfg {
         for _ in 0..num_games {
             let gbuff = &ulbuff[start_index..start_index + UL_GAME_SIZE];
             let opl_name = parser::parse_to_string(gbuff, 0, UL_GAME_NAME_SIZE);
-            let entry = Game::from_config(gamepath, opl_name)?;
+            let entry = Game::from_config(gamepath, opl_name);
             game_list.push(entry);
             start_index += UL_GAME_SIZE;
         }
@@ -100,7 +100,7 @@ impl Ulcfg {
     }
 
     pub fn add_game(&mut self, isopath: &Path, dstpath: &Path, opl_name: String) -> Result<()> {
-        let mut game = Game::from_iso(isopath, opl_name)?;
+        let mut game = Game::from_iso(isopath, opl_name);
         // TODO Cleanup if create_chunks failed?
         game.create_chunks(dstpath)?;
         self.game_list.push(game);

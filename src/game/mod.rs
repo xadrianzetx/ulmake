@@ -18,42 +18,34 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn from_iso(isopath: &Path, opl_name: String) -> Result<Self> {
+    pub fn from_iso(path: &Path, opl_name: String) -> Self {
         let crc_name = crc::get_game_name_crc(&opl_name);
-        let chunk = ISOChunk::from(isopath.to_path_buf());
+        let chunk = ISOChunk::from(path.to_path_buf());
         let chunks: Vec<Box<dyn Chunk>> = vec![Box::new(chunk)];
 
-        let game = Game {
+        Game {
             opl_name,
             crc_name,
             chunks,
-        };
-
-        Ok(game)
+        }
     }
 
-    pub fn from_config(chunkpath: &Path, opl_name: String) -> Result<Self> {
+    pub fn from_config(path: &Path, opl_name: String) -> Self {
         let crc_name = crc::get_game_name_crc(&opl_name);
-
-        // FIXME Kinda stupid behavior to just fail when game chunks are missing.
-        // We probably should create game with no chunks and indicate in list_games
-        // that this config entry is errorous. delete_game should allow to remove
-        // just the config entry in such case.
-        let chunks = list_game_chunks(chunkpath, &crc_name)?
+        let chunks = list_game_chunks(path, &crc_name)
+            .unwrap_or_default()
             .iter()
             .map(|c| {
-                let p = chunkpath.to_path_buf().join(c);
+                let p = path.to_path_buf().join(c);
                 Box::new(GameChunk::from(p)) as Box<dyn Chunk>
             })
             .collect::<Vec<Box<dyn Chunk>>>();
 
-        let game = Game {
+        Game {
             opl_name,
             crc_name,
             chunks,
-        };
-
-        Ok(game)
+        }
     }
 
     pub fn create_chunks(&mut self, dstpath: &Path) -> Result<()> {
@@ -165,5 +157,24 @@ mod tests {
         path.push("resources");
         let chunks = list_game_chunks(&path, "00000000");
         assert!(chunks.is_err());
+    }
+
+    #[test]
+    fn test_create_chunks_no_iso() {
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push("resources/foobarbaz.iso");
+        let dst = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let mut game = Game::from_iso(&path, String::from("foobarbaz"));
+        assert_eq!(game.num_chunks(), 1);
+        assert!(game.create_chunks(&dst).is_err());
+    }
+
+    #[test]
+    fn test_delete_chunks_no_chunks() {
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push("resources");
+        let game = Game::from_config(&path, String::from("foobarbaz"));
+        assert_eq!(game.num_chunks(), 0);
+        assert!(game.delete_chunks().is_ok());
     }
 }
