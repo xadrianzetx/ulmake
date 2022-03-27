@@ -94,8 +94,8 @@ impl Ulcfg {
     }
 
     pub fn list_games(&self) {
-        let col_names = strvec!["Index", "Name", "Serial", "Size"];
-        let col_sizes = vec![5, UL_GAME_NAME_SIZE, UL_SERIAL_SIZE, 6];
+        let col_names = strvec!["Index", "Name", "Serial", "Size", "Status"];
+        let col_sizes = vec![5, UL_GAME_NAME_SIZE, UL_SERIAL_SIZE, 6, 10];
         let hline = table::make_hline(&col_sizes);
         let header = table::make_row(col_names, &col_sizes);
 
@@ -103,12 +103,14 @@ impl Ulcfg {
         println!("{}", header);
         println!("{}", hline);
 
-        for (pos, game) in self.game_list.iter().enumerate() {
+        let it = self.game_list.iter().zip(self.states.iter());
+        for (pos, (game, state)) in it.enumerate() {
             let contents = vec![
                 pos.to_string(),
                 String::from(&game.opl_name),
                 game.serial(),
                 game.formatted_size(),
+                format!("{}", state),
             ];
             let row = table::make_row(contents, &col_sizes);
             println!("{}", row);
