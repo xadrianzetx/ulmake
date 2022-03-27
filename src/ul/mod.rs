@@ -1,14 +1,18 @@
 mod parser;
+mod status;
 mod table;
 
 use crate::game::Game;
+use crate::ul::status::GameStatus;
 
-use std::fs::{read, write};
+use std::fs::{write, File};
+use std::io::prelude::*;
 use std::io::{Error, ErrorKind, Result};
 use std::path::Path;
 
 const UL_GAME_SIZE: usize = 64;
 const UL_GAME_NAME_SIZE: usize = 32;
+const UL_GAME_CHUNK_COUNT: usize = 47;
 const UL_SERIAL_SIZE: usize = 12;
 const UL_EMPTY_SIZE: usize = 4;
 const UL_NAME_EXT_SIZE: usize = 10;
@@ -21,31 +25,45 @@ macro_rules! strvec {
 
 pub struct Ulcfg {
     game_list: Vec<Game>,
+    states: Vec<GameStatus>,
 }
 
 impl Ulcfg {
     pub fn new() -> Self {
         let game_list: Vec<Game> = Vec::new();
-        Ulcfg { game_list }
+        let states: Vec<GameStatus> = Vec::new();
+        Ulcfg { game_list, states }
     }
 
     pub fn load(path: &Path) -> Result<Self> {
+        let mut file = File::open(&path)?;
         let mut game_list: Vec<Game> = Vec::new();
-        let gamepath = path.parent().ok_or(ErrorKind::InvalidData)?;
-        let ulbuff = read(path)?;
-        let num_games = ulbuff.len() / UL_GAME_SIZE;
-        let mut start_index = 0;
+        let mut states: Vec<GameStatus> = Vec::new();
 
-        for _ in 0..num_games {
-            let gbuff = &ulbuff[start_index..start_index + UL_GAME_SIZE];
-            let opl_name = parser::parse_to_string(gbuff, 0, UL_GAME_NAME_SIZE);
-            let entry = Game::from_config(gamepath, opl_name);
-            game_list.push(entry);
-            start_index += UL_GAME_SIZE;
+        loop {
+            let mut handle = file.take(UL_GAME_SIZE as u64);
+            let mut buffer = vec![0; UL_GAME_SIZE];
+
+            if handle.read(&mut buffer)? < buffer.len() {
+                break;
+            }
+
+            file = handle.into_inner();
+            let opl_name = parser::parse_to_string(&buffer, 0, UL_GAME_NAME_SIZE);
+            let game = Game::from_config(path.parent().unwrap(), opl_name);
+
+            let mut state = GameStatus::Good;
+            if game.num_chunks() == 0 {
+                state = GameStatus::from("NO DATA");
+            } else if game.num_chunks() != buffer[UL_GAME_CHUNK_COUNT] {
+                state = GameStatus::from("LOST DATA");
+            }
+
+            game_list.push(game);
+            states.push(state);
         }
 
-        let ulcfg = Ulcfg { game_list };
-        Ok(ulcfg)
+        Ok(Ulcfg { game_list, states })
     }
 
     pub fn save(&self, path: &Path) -> Result<()> {
