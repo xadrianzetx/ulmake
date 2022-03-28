@@ -24,25 +24,25 @@ macro_rules! strvec {
 }
 
 pub struct Ulcfg {
-    game_list: Vec<Game>,
+    games: Vec<Game>,
     states: Vec<GameStatus>,
 }
 
 impl Ulcfg {
     pub fn new() -> Self {
-        let game_list: Vec<Game> = Vec::new();
+        let games: Vec<Game> = Vec::new();
         let states: Vec<GameStatus> = Vec::new();
-        Ulcfg { game_list, states }
+        Ulcfg { games, states }
     }
 
     pub fn load(path: &Path) -> Result<Self> {
         let mut file = File::open(&path)?;
-        let mut game_list: Vec<Game> = Vec::new();
+        let mut games: Vec<Game> = Vec::new();
         let mut states: Vec<GameStatus> = Vec::new();
 
         loop {
             let mut handle = file.take(UL_GAME_SIZE as u64);
-            let mut buffer = vec![0; UL_GAME_SIZE];
+            let mut buffer = vec![0x00; UL_GAME_SIZE];
 
             if handle.read(&mut buffer)? < buffer.len() {
                 break;
@@ -59,17 +59,17 @@ impl Ulcfg {
                 state = GameStatus::from("LOST DATA");
             }
 
-            game_list.push(game);
+            games.push(game);
             states.push(state);
         }
 
-        Ok(Ulcfg { game_list, states })
+        Ok(Ulcfg { games, states })
     }
 
     pub fn save(&self, path: &Path) -> Result<()> {
         let mut ulbuff: Vec<u8> = Vec::new();
 
-        for entry in &self.game_list {
+        for entry in &self.games {
             // first 32 bytes are padded OPL game name
             let game_name_bytes = parser::compose_from_str(&entry.opl_name, UL_GAME_NAME_SIZE);
             ulbuff.extend_from_slice(&game_name_bytes);
@@ -103,7 +103,7 @@ impl Ulcfg {
         println!("{}", header);
         println!("{}", hline);
 
-        let it = self.game_list.iter().zip(self.states.iter());
+        let it = self.games.iter().zip(self.states.iter());
         for (pos, (game, state)) in it.enumerate() {
             let contents = vec![
                 pos.to_string(),
@@ -123,13 +123,13 @@ impl Ulcfg {
         let mut game = Game::from_iso(isopath, opl_name);
         // TODO Cleanup if create_chunks failed?
         game.create_chunks(dstpath)?;
-        self.game_list.push(game);
+        self.games.push(game);
 
         Ok(())
     }
 
     pub fn delete_game_by_name(&mut self, name: String) -> Result<()> {
-        for (index, game) in self.game_list.iter().enumerate() {
+        for (index, game) in self.games.iter().enumerate() {
             if game.opl_name == name.as_str() {
                 self.delete_game(index)?;
                 return Ok(());
@@ -140,7 +140,7 @@ impl Ulcfg {
     }
 
     pub fn delete_game_by_index(&mut self, index: usize) -> Result<()> {
-        if index >= self.game_list.len() {
+        if index >= self.games.len() {
             return Err(Error::from(ErrorKind::InvalidInput));
         }
 
@@ -149,7 +149,7 @@ impl Ulcfg {
     }
 
     fn delete_game(&mut self, index: usize) -> Result<()> {
-        let game = self.game_list.remove(index);
+        let game = self.games.remove(index);
         game.delete_chunks()?;
         Ok(())
     }
