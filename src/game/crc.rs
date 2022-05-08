@@ -1,6 +1,6 @@
 const CRC_TABLE_SIZE: i32 = 256;
 
-fn initialize_crc_table(crc_table: &mut Vec<i32>) {
+fn initialize_crc_table(crc_table: &mut [i32]) {
     for index in 0..CRC_TABLE_SIZE {
         let mut crc = index << 24;
         for _ in 0..8 {
