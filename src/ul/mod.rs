@@ -150,6 +150,7 @@ impl Ulcfg {
 
     fn delete_game(&mut self, index: usize) -> Result<()> {
         let game = self.games.remove(index);
+        self.states.remove(index);
         game.delete_chunks()?;
         Ok(())
     }
