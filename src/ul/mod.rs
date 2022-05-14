@@ -154,3 +154,25 @@ impl Ulcfg {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    #[test]
+    fn test_ulcfg_load_failed() {
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push("resources/fake.ul.cfg");
+        let ulcfg = Ulcfg::load(&path);
+        assert!(ulcfg.is_err());
+    }
+
+    #[test]
+    fn test_ulcfg_load_success() {
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push("resources/ul.cfg");
+        let ulcfg = Ulcfg::load(&path);
+        assert!(ulcfg.is_ok());
+    }
+}
