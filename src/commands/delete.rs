@@ -5,7 +5,7 @@ use std::path::Path;
 
 use clap::ArgMatches;
 
-fn delete_game_by_name(path: &Path, name: String) -> Result<()> {
+fn delete_game_by_name(path: &Path, name: &str) -> Result<()> {
     let ulpath = path.join(Path::new("ul.cfg"));
     let mut ulcfg = Ulcfg::load(&ulpath)?;
     ulcfg.delete_game_by_name(name)?;
@@ -34,8 +34,7 @@ pub fn delete(args: &ArgMatches) {
     }
 
     if let Some(name) = args.value_of("name") {
-        let namestr = String::from(name);
-        match delete_game_by_name(path, namestr) {
+        match delete_game_by_name(path, name) {
             Ok(()) => (),
             Err(_) => println!("Could not delete game by name"),
         }
