@@ -6,11 +6,11 @@ use clap::{App, Arg};
 
 fn main() {
     let matches = App::new("ulmake")
-        .version("0.3.0")
+        .version("0.4.0")
         .author("xadrianzetx")
         .about(concat!(
-            "A CLI utility that helps to manage PlayStation 2 games\n",
-            "in USBAdvance/Extreme format (similarly to USB Util)"
+            "A command line tool that helps to create and manage PlayStation 2\n",
+            "games in USBAdvance/Extreme format, similarly to USB Util"
         ))
         .subcommand(
             App::new("add")
