@@ -1,11 +1,11 @@
 [package]
 name = "ulmake"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 authors = ["xadrianzetx"]
 license = "MIT"
 repository = "https://github.com/xadrianzetx/ulmake"
-description = "A CLI utility that helps to manage PS2 games in .ul format (similarly to USB Util)"
+description = "A command line tool that helps to create and manage PlayStation 2 games in USBAdvance/Extreme format, similarly to USB Util."
 
 [dependencies]
 clap = "2.33.3"
