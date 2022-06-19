@@ -8,6 +8,7 @@ use iso9660::{DirectoryEntry, ISO9660};
 use regex::Regex;
 
 const SYSTEM_CNF_PATH: &str = "/SYSTEM.CNF";
+const NUM_CHUNKNAME_SEGMENTS: usize = 5;
 
 pub struct ISOChunk {
     path: PathBuf,
@@ -83,7 +84,7 @@ impl Chunk for GameChunk {
             .split('.')
             .collect::<Vec<&str>>();
 
-        if segments.len() != 5 {
+        if segments.len() != NUM_CHUNKNAME_SEGMENTS {
             // Chunk names have five comma separated segments (including extension).
             // Example: ul.84BA9D95.SLXS_123.45.00
             return Err(Error::from(ErrorKind::InvalidData));
